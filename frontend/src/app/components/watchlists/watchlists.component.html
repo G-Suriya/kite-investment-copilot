@@ -1,0 +1,356 @@
+<div class="watchlists-page">
+  <!-- Top Navigation & Watchlist Tabs Header -->
+  <div class="watchlists-header glass-panel">
+    <div class="header-left">
+      <div class="title-row">
+        <h2>Watchlists & Markets</h2>
+        <span class="badge badge-secondary">Kite Connected</span>
+      </div>
+      <p class="subtitle">Multi-asset research categorized by Equities, ETFs, and IPOs.</p>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-primary btn-sm sync-kite-btn" [disabled]="isSyncing" (click)="syncKiteHoldings()">
+        <span *ngIf="!isSyncing">↻ Sync Kite Holdings</span>
+        <span *ngIf="isSyncing">Syncing...</span>
+      </button>
+      <button class="btn btn-secondary btn-sm" (click)="showCreateModal = true">
+        + New Watchlist
+      </button>
+      <button class="btn btn-secondary btn-sm" (click)="openAddItem()">
+        + Add Asset
+      </button>
+    </div>
+  </div>
+
+  <!-- Notification Banner -->
+  <div *ngIf="syncMessage" class="sync-alert-banner">
+    <div class="alert-content">
+      <span>{{ syncMessage }}</span>
+    </div>
+    <button class="alert-close" (click)="syncMessage = null">✕</button>
+  </div>
+
+  <!-- Watchlists Tab Bar -->
+  <div class="tabs-nav-bar">
+    <!-- Master All Watchlists Tab -->
+    <button class="tab-btn master-tab-btn" 
+            [class.active]="selectedWatchlistId === 0"
+            (click)="selectWatchlist(0)">
+      <span class="tab-name">Live Kite Watchlist</span>
+      <span class="tab-badge">{{ allWatchlistItems.length }}</span>
+    </button>
+
+    <button *ngFor="let wl of watchlists" 
+            class="tab-btn" 
+            [class.active]="wl.id === selectedWatchlistId"
+            (click)="selectWatchlist(wl.id)">
+      <span class="tab-name">{{ wl.name }}</span>
+      <span class="tab-badge">{{ wl.items.length }}</span>
+    </button>
+  </div>
+
+  <!-- Active Watchlist Content Panel -->
+  <div *ngIf="activeWatchlist" class="watchlist-content-card glass-panel">
+    <!-- Meta Header with Search & Filter Controls -->
+    <div class="watchlist-meta-bar">
+      <div class="meta-left">
+        <div class="meta-title-group">
+          <h3>{{ activeWatchlist.name }}</h3>
+          <span class="badge badge-tool">{{ activeWatchlist.type }}</span>
+        </div>
+        <p class="meta-desc">{{ activeWatchlist.description || 'Custom multi-asset investment watchlist.' }}</p>
+      </div>
+
+      <div class="meta-right">
+        <!-- Search filter within watchlist -->
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Search symbol or notes..." class="search-input" />
+          <button *ngIf="searchQuery" class="clear-search" (click)="searchQuery = ''">✕</button>
+        </div>
+
+        <!-- Toggle Split Chart vs Full Table View -->
+        <button class="btn btn-secondary btn-sm" (click)="toggleSideChart()">
+          <span *ngIf="!showSideChart">📊 Split Chart</span>
+          <span *ngIf="showSideChart">📑 Full Table</span>
+        </button>
+
+        <button *ngIf="!isAllWatchlists" class="btn btn-danger btn-sm" (click)="deleteActiveWatchlist()">
+          Delete List
+        </button>
+      </div>
+    </div>
+
+    <!-- Stock Type Categorization Filter Pills -->
+    <div class="category-filter-bar">
+      <span class="filter-label">Filter:</span>
+      <button class="category-pill" 
+              [class.active]="selectedTypeFilter === 'ALL'" 
+              (click)="selectTypeFilter('ALL')">
+        All ({{ getTypeCount('ALL') }})
+      </button>
+      <button class="category-pill" 
+              [class.active]="selectedTypeFilter === 'STOCK'" 
+              (click)="selectTypeFilter('STOCK')">
+        Equities ({{ getTypeCount('STOCK') }})
+      </button>
+      <button class="category-pill" 
+              [class.active]="selectedTypeFilter === 'ETF'" 
+              (click)="selectTypeFilter('ETF')">
+        ETFs ({{ getTypeCount('ETF') }})
+      </button>
+      <button class="category-pill" 
+              [class.active]="selectedTypeFilter === 'IPO'" 
+              (click)="selectTypeFilter('IPO')">
+        IPOs ({{ getTypeCount('IPO') }})
+      </button>
+      <button class="category-pill" 
+              *ngIf="getTypeCount('INDEX') > 0"
+              [class.active]="selectedTypeFilter === 'INDEX'" 
+              (click)="selectTypeFilter('INDEX')">
+        Indices ({{ getTypeCount('INDEX') }})
+      </button>
+    </div>
+
+    <!-- Main Workspace: Full Width Table or Split Grid with Chart -->
+    <div class="workspace-grid" [class.with-chart]="showSideChart" *ngIf="filteredItems.length > 0">
+      <!-- Data Table -->
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Symbol & Company</th>
+              <th>Category</th>
+              <th>Last Price</th>
+              <th>Day Change</th>
+              <th>52-W Range</th>
+              <th>Target</th>
+              <th>Notes</th>
+              <th style="text-align: right;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let item of filteredItems" 
+                [class.selected-row]="item.symbol === previewChartSymbol"
+                (click)="selectPreviewStock(item.symbol)">
+              <td>
+                <div class="symbol-cell">
+                  <div class="ticker-symbol">{{ item.symbol }}</div>
+                  <span class="exchange-tag">{{ item.exchange }}</span>
+                </div>
+                <div class="company-subtext">
+                  {{ item.companyName || getQuote(item.symbol)?.companyName || item.symbol }}
+                  <span *ngIf="item.watchlistNames && item.watchlistNames.length > 0" class="item-lists-tag">
+                    • {{ item.watchlistNames.join(', ') }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'badge-stock': item.assetType === 'STOCK',
+                  'badge-etf': item.assetType === 'ETF',
+                  'badge-ipo': item.assetType === 'IPO',
+                  'badge-index': item.assetType === 'INDEX'
+                }">{{ item.assetType }}</span>
+              </td>
+              <td>
+                <span class="font-mono font-bold" *ngIf="getQuote(item.symbol) as q">₹{{ q.lastPrice | number:'1.2-2' }}</span>
+                <span *ngIf="!getQuote(item.symbol)">—</span>
+              </td>
+              <td>
+                <div *ngIf="getQuote(item.symbol) as q" [ngClass]="q.changePercent >= 0 ? 'text-profit' : 'text-loss'" class="font-bold">
+                  {{ q.changePercent >= 0 ? '+' : '' }}{{ q.changePercent | number:'1.2-2' }}%
+                </div>
+                <span *ngIf="!getQuote(item.symbol)">—</span>
+              </td>
+              <td style="min-width: 130px;">
+                <div *ngIf="getQuote(item.symbol) as q" class="range-container">
+                  <div class="range-labels font-mono">
+                    <span>{{ q.fiftyTwoWeekLow | number:'1.0-0' }}</span>
+                    <span>{{ q.fiftyTwoWeekHigh | number:'1.0-0' }}</span>
+                  </div>
+                  <div class="range-bar">
+                    <div class="range-fill" [style.width.%]="calculate52WeekPercentage(q)"></div>
+                    <div class="range-marker" [style.left.%]="calculate52WeekPercentage(q)"></div>
+                  </div>
+                </div>
+                <span *ngIf="!getQuote(item.symbol)">—</span>
+              </td>
+              <td>
+                <span *ngIf="item.targetPrice" class="font-mono">₹{{ item.targetPrice | number:'1.2-2' }}</span>
+                <span *ngIf="!item.targetPrice" class="text-muted">—</span>
+              </td>
+              <td class="notes-cell">
+                <span class="notes-text" title="{{ item.notes }}">{{ item.notes || '—' }}</span>
+              </td>
+              <td style="text-align: right;">
+                <div class="row-actions">
+                  <button class="btn btn-secondary btn-xs action-btn" 
+                          [class.btn-active-chart]="item.symbol === previewChartSymbol"
+                          (click)="viewChart(item.symbol, $event)" 
+                          title="Open Chart Modal">
+                    Chart
+                  </button>
+                  <button class="btn btn-secondary btn-xs action-btn" 
+                          (click)="analyzeSymbol(item.symbol, $event)" 
+                          title="Analyze with Copilot">
+                    Copilot
+                  </button>
+                  <button class="btn btn-danger btn-xs action-btn-del" 
+                          (click)="removeItem(item.symbol, $event)" 
+                          title="Remove">
+                    ✕
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Right: Embedded Interactive Live Chart (Shown only when showSideChart is true) -->
+      <div class="live-chart-panel" *ngIf="showSideChart && previewChartSymbol">
+        <div class="chart-panel-header">
+          <div class="chart-title-area">
+            <h4>Technical Chart: <span class="chart-symbol-highlight">{{ previewChartSymbol }}</span></h4>
+            <div class="chart-quote-pill" *ngIf="getQuote(previewChartSymbol) as pq">
+              <span class="pq-price">₹{{ pq.lastPrice | number:'1.2-2' }}</span>
+              <span [ngClass]="pq.changePercent >= 0 ? 'text-profit' : 'text-loss'" class="pq-change font-bold">
+                {{ pq.changePercent >= 0 ? '+' : '' }}{{ pq.changePercent | number:'1.2-2' }}%
+              </span>
+            </div>
+          </div>
+          <div class="chart-actions-area">
+            <button class="btn btn-secondary btn-xs" (click)="viewChart(previewChartSymbol)" title="Open Fullscreen">
+              ⛶ Modal
+            </button>
+            <button class="btn btn-primary btn-xs" (click)="analyzeSymbol(previewChartSymbol)">
+              ✦ Copilot
+            </button>
+          </div>
+        </div>
+
+        <div class="chart-panel-body">
+          <iframe [src]="getChartUrl(previewChartSymbol)" 
+                  class="tradingview-preview-iframe"
+                  allowtransparency="true" 
+                  frameborder="0">
+          </iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty State for active category -->
+    <div *ngIf="filteredItems.length === 0" class="empty-state">
+      <h4>No {{ selectedTypeFilter !== 'ALL' ? selectedTypeFilter : '' }} assets in this view</h4>
+      <p class="empty-subtext">Click "Sync Kite Holdings" to load your real Zerodha holdings, or "+ Add Asset" to add manually.</p>
+      <div class="empty-actions">
+        <button class="btn btn-primary btn-sm" (click)="syncKiteHoldings()">Sync Kite Holdings</button>
+        <button class="btn btn-secondary btn-sm" (click)="openAddItem()">+ Add Asset</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Live Chart Modal -->
+  <div *ngIf="selectedChartSymbol" class="modal-overlay" (click)="closeChart()">
+    <div class="modal-panel glass-panel chart-modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="chart-modal-titles">
+          <h3>Technical Chart: <span class="text-primary">{{ selectedChartSymbol }}</span></h3>
+          <p class="subtitle">Live candles and technical indicators</p>
+        </div>
+        <div class="chart-modal-header-actions">
+          <button class="btn btn-primary btn-sm" (click)="analyzeSymbol(selectedChartSymbol)">
+            ✦ Copilot Analysis
+          </button>
+          <button class="close-btn" (click)="closeChart()">✕</button>
+        </div>
+      </div>
+      <div class="chart-modal-body">
+        <iframe [src]="getChartUrl(selectedChartSymbol)" 
+                class="tradingview-modal-iframe"
+                allowtransparency="true" 
+                frameborder="0">
+        </iframe>
+      </div>
+    </div>
+  </div>
+
+  <!-- Add Asset Modal -->
+  <div *ngIf="showAddModal" class="modal-overlay" (click)="showAddModal = false">
+    <div class="modal-panel glass-panel form-modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>+ Add Asset to Watchlist</h3>
+        <button class="close-btn" (click)="showAddModal = false">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Target Watchlist</label>
+          <select [(ngModel)]="selectedTargetWatchlistId" class="input-control">
+            <option *ngFor="let w of watchlists" [value]="w.id">{{ w.name }} ({{ w.type }})</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Trading Symbol</label>
+          <input type="text" [(ngModel)]="newItemSymbol" placeholder="e.g. RELIANCE, TCS, NIFTYBEES" class="input-control" />
+        </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label>Asset Type</label>
+            <select [(ngModel)]="newItemAssetType" class="input-control">
+              <option value="STOCK">Stock / Equity</option>
+              <option value="ETF">ETF / Commodity</option>
+              <option value="IPO">IPO / Recent Listing</option>
+              <option value="INDEX">Index</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Target Price (₹, optional)</label>
+            <input type="number" [(ngModel)]="newItemTargetPrice" placeholder="e.g. 2800" class="input-control" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Investment Thesis / Notes</label>
+          <textarea [(ngModel)]="newItemNotes" placeholder="Key triggers, entry rationale..." class="input-control text-area"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" (click)="showAddModal = false">Cancel</button>
+        <button class="btn btn-primary btn-sm" [disabled]="!newItemSymbol.trim()" (click)="submitAddItem()">Add to Watchlist</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Create Watchlist Modal -->
+  <div *ngIf="showCreateModal" class="modal-overlay" (click)="showCreateModal = false">
+    <div class="modal-panel glass-panel form-modal-panel" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>+ Create New Watchlist</h3>
+        <button class="close-btn" (click)="showCreateModal = false">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Watchlist Name</label>
+          <input type="text" [(ngModel)]="newWatchlistName" placeholder="e.g. Long-term Compounders, F&O Radar" class="input-control" />
+        </div>
+        <div class="form-group">
+          <label>Category Type</label>
+          <select [(ngModel)]="newWatchlistType" class="input-control">
+            <option value="Stocks">Stocks / Equities</option>
+            <option value="ETFs">ETFs & Gold</option>
+            <option value="IPOs">IPOs & Primary Market</option>
+            <option value="Custom">Custom Mixed</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <input type="text" [(ngModel)]="newWatchlistDesc" placeholder="e.g. Core portfolio candidates for FY26" class="input-control" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" (click)="showCreateModal = false">Cancel</button>
+        <button class="btn btn-primary btn-sm" [disabled]="!newWatchlistName.trim()" (click)="submitCreateWatchlist()">Create Watchlist</button>
+      </div>
+    </div>
+  </div>
+</div>

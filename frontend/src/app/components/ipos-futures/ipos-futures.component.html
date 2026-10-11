@@ -1,0 +1,850 @@
+<div class="ipos-futures-page">
+  <!-- Hub Header -->
+  <div class="page-header glass-panel">
+    <div class="header-left">
+      <div class="title-row">
+        <h2>IPOs & Derivatives Hub</h2>
+        <span class="badge badge-secondary">Multi-Source Telemetry</span>
+      </div>
+      <p class="subtitle">Live grey market premiums (GMP), company revenue catalysts, and derivatives open interest traction.</p>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-secondary btn-sm" (click)="loadAllData()">
+        ↻ Refresh Data
+      </button>
+    </div>
+  </div>
+
+  <!-- Hub Main Navigation Tabs -->
+  <div class="nav-tabs-bar">
+    <button class="tab-btn" [class.active]="activeTab === 'growth-picks'" (click)="activeTab = 'growth-picks'">
+      <span class="tab-label">✦ AI Growth Picks (Stocks & IPOs)</span>
+      <span class="tab-counter" *ngIf="growthOpportunities">{{ (growthOpportunities.topIpos.length + growthOpportunities.topStocks.length) }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'ipos'" (click)="activeTab = 'ipos'">
+      <span class="tab-label">IPO Pipeline & GMP</span>
+      <span class="tab-counter">{{ ipos.length }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'revenue-drivers'" (click)="activeTab = 'revenue-drivers'">
+      <span class="tab-label">Company Revenue & Catalysts</span>
+      <span class="tab-counter">6 Stocks</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'futures'" (click)="activeTab = 'futures'">
+      <span class="tab-label">Futures & Open Interest</span>
+      <span class="tab-counter">{{ futures.length }}</span>
+    </button>
+    <button class="tab-btn" [class.active]="activeTab === 'market'" (click)="activeTab = 'market'">
+      <span class="tab-label">Market Pulse & FII/DII</span>
+    </button>
+  </div>
+
+  <!-- TAB 0: AI Growth Picks & Suggestions (Stocks & IPOs) -->
+  <div *ngIf="activeTab === 'growth-picks'" class="tab-content-panel">
+    <!-- Context Banner -->
+    <div class="gmp-banner glass-panel">
+      <div class="gmp-banner-main">
+        <div class="gmp-info-col">
+          <div class="gmp-title-row">
+            <span class="gmp-badge-tag">✦ AI Growth Screener</span>
+            <span class="gmp-text">{{ growthOpportunities?.marketContext || 'Live telemetry scanning grey market premiums, company revenue growth, and high ROCE balance sheets.' }}</span>
+          </div>
+          <div class="gmp-rules-line">
+            <span class="rule-item text-profit">● Live Auto-Sync: Active (20s)</span>
+            <span class="rule-item text-muted">● High ROCE (&gt;25%)</span>
+            <span class="rule-item text-profit">● High GMP (&gt;15%)</span>
+            <span class="rule-item text-muted">● Real-time NSE Quotes</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 1: Top High-GMP IPO Growth Opportunities -->
+    <div class="card glass-panel no-padding" style="margin-bottom: 20px;">
+      <div class="card-header-inner">
+        <div>
+          <h4>🚀 Top IPO Growth Picks (Ranked by GMP & Company Growth)</h4>
+          <span class="subtext">Curated issues offering high grey market demand, strong revenue growth, and institutional backing</span>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>IPO Company</th>
+              <th>Price Band</th>
+              <th>GMP (₹)</th>
+              <th>Est. Listing Gain</th>
+              <th>YoY Growth</th>
+              <th>Copilot Recommendation</th>
+              <th>Financial Health</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ipo of growthOpportunities?.topIpos">
+              <td>
+                <div class="ticker-symbol">{{ ipo.companyName }}</div>
+                <div class="company-subtext">{{ ipo.symbol }} • {{ ipo.sector }}</div>
+              </td>
+              <td><span class="font-mono">{{ ipo.priceBand }}</span></td>
+              <td><span class="font-bold text-profit">₹{{ ipo.gmp }}</span></td>
+              <td><span class="font-bold text-profit">+{{ ipo.gmpPercent | number:'1.1-1' }}%</span></td>
+              <td><span class="badge badge-tool">+{{ ipo.yoYRevenueGrowthPercent }}% YoY</span></td>
+              <td>
+                <span class="badge" [ngClass]="ipo.recommendation.includes('STRONG') ? 'badge-profit' : 'badge-tool'">
+                  {{ ipo.recommendation }}
+                </span>
+              </td>
+              <td style="max-width: 250px; font-size: 0.8rem; color: var(--text-secondary);">
+                {{ ipo.financialHealthSummary }}
+              </td>
+              <td>
+                <button class="btn btn-secondary btn-sm" (click)="askCopilotAboutIpoOpp(ipo)">
+                  ✦ Full AI Analysis
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Section 2: Top Stock Growth Compounders -->
+    <div class="card glass-panel no-padding">
+      <div class="card-header-inner">
+        <div>
+          <h4>📈 Top Stock Growth Picks (High YoY Revenue, ROCE &gt; 25%, Technical Breakouts)</h4>
+          <span class="subtext">Indian market compounders with live exchange quotes, target upsides, and solid catalysts</span>
+        </div>
+      </div>
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Stock / Sector</th>
+              <th>Live CMP</th>
+              <th>Target Price</th>
+              <th>Est. Upside</th>
+              <th>YoY Growth</th>
+              <th>ROCE / ROE</th>
+              <th>Growth Theme</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let s of growthOpportunities?.topStocks">
+              <td>
+                <div class="ticker-symbol">{{ s.companyName }}</div>
+                <div class="company-subtext">{{ s.symbol }} • {{ s.sector }}</div>
+              </td>
+              <td><span class="font-mono font-bold">₹{{ s.currentPrice | number:'1.2-2' }}</span></td>
+              <td><span class="font-mono text-profit font-bold">₹{{ s.targetPrice | number:'1.0-0' }}</span></td>
+              <td><span class="font-bold text-profit">+{{ s.upsidePotentialPercent | number:'1.1-1' }}%</span></td>
+              <td><span class="badge badge-tool">+{{ s.yoYRevenueGrowthPercent }}% YoY</span></td>
+              <td>
+                <span class="font-mono text-muted">{{ s.rocePercent ? s.rocePercent + '%' : '—' }} / {{ s.roePercent ? s.roePercent + '%' : '—' }}</span>
+              </td>
+              <td style="max-width: 280px; font-size: 0.8rem; color: var(--text-secondary);">
+                <div class="font-bold text-primary">{{ s.growthTheme }}</div>
+                <div>{{ s.technicalSetup }}</div>
+              </td>
+              <td>
+                <button class="btn btn-secondary btn-sm" (click)="askCopilotAboutOpportunity(s)">
+                  ✦ Full AI Analysis
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 1: IPO Hub & GMP Explained -->
+  <!-- TAB 1: Groww-Style IPO Hub & Customization -->
+  <div *ngIf="activeTab === 'ipos'" class="tab-content-panel">
+
+    <!-- Groww Page Title & Top Filter Pills (Matching Groww Screenshot) -->
+    <div class="groww-top-container">
+      <div class="groww-header-row">
+        <h2 class="groww-title">{{ getStageTitle() }}</h2>
+        <div class="groww-summary-badge">
+          <span>{{ growwFilteredIpos.length }} Companies</span>
+        </div>
+      </div>
+
+      <!-- Top Pills: Open | Closed | Upcoming | Subscription | Allotment -->
+      <div class="groww-pills-row">
+        <button class="groww-stage-pill"
+                [class.active]="stageFilter === 'OPEN'"
+                (click)="stageFilter = 'OPEN'">
+          Open
+        </button>
+        <button class="groww-stage-pill"
+                [class.active]="stageFilter === 'CLOSED'"
+                (click)="stageFilter = 'CLOSED'">
+          Closed
+        </button>
+        <button class="groww-stage-pill"
+                [class.active]="stageFilter === 'UPCOMING'"
+                (click)="stageFilter = 'UPCOMING'">
+          Upcoming
+        </button>
+        <button class="groww-stage-pill"
+                [class.active]="stageFilter === 'SUBSCRIPTION'"
+                (click)="stageFilter = 'SUBSCRIPTION'">
+          Subscription
+        </button>
+        <button class="groww-stage-pill"
+                [class.active]="stageFilter === 'ALLOTMENT'"
+                (click)="stageFilter = 'ALLOTMENT'">
+          Allotment
+        </button>
+      </div>
+
+      <!-- Groww Sub-Filter Bar: IPO type: All ⌄ + Search + Customization Dropdown -->
+      <div class="groww-subbar">
+        <div class="subbar-left">
+          <!-- IPO type dropdown -->
+          <div class="groww-type-selector">
+            <span class="type-label">IPO type:</span>
+            <div class="type-dropdown-box">
+              <select [(ngModel)]="ipoTypeFilter" class="type-native-select">
+                <option value="ALL">All</option>
+                <option value="Mainboard">Mainboard</option>
+                <option value="SME">SME</option>
+              </select>
+              <span class="dropdown-arrow">⌄</span>
+            </div>
+          </div>
+
+          <!-- Quick Search -->
+          <div class="groww-search-wrap">
+            <span class="search-ico">🔍</span>
+            <input type="text"
+                   [(ngModel)]="searchQuery"
+                   placeholder="Filter company or sector..."
+                   class="groww-search-field" />
+            <button class="clear-search" *ngIf="searchQuery" (click)="searchQuery = ''">✕</button>
+          </div>
+        </div>
+
+        <div class="subbar-right">
+          <!-- View Customizer Dropdown Popover -->
+          <div class="customizer-container">
+            <button class="customizer-trigger-btn"
+                    [class.active]="showCustomizerMenu"
+                    (click)="toggleCustomizer()">
+              <span class="gear-ico">⚙</span>
+              <span>Customize Columns</span>
+              <span class="chev">⌄</span>
+            </button>
+
+            <!-- Customization Settings Card -->
+            <div class="customizer-popover-card glass-panel" *ngIf="showCustomizerMenu">
+              <div class="customizer-popover-header">
+                <span class="popover-title">⚙ Customize IPO Table</span>
+                <button class="reset-link" (click)="resetCustomization()">Reset Defaults</button>
+              </div>
+              <div class="customizer-items-group">
+                <label class="customizer-check-label">
+                  <input type="checkbox" [(ngModel)]="showGmp" />
+                  <span>Grey Market Premium (GMP & Est. Gain)</span>
+                </label>
+                <label class="customizer-check-label">
+                  <input type="checkbox" [(ngModel)]="showPriceBand" />
+                  <span>Price Band</span>
+                </label>
+                <label class="customizer-check-label">
+                  <input type="checkbox" [(ngModel)]="showMinInvestment" />
+                  <span>Min. Investment (₹)</span>
+                </label>
+                <label class="customizer-check-label">
+                  <input type="checkbox" [(ngModel)]="showIssueSize" />
+                  <span>Issue Size (₹ Cr)</span>
+                </label>
+                <label class="customizer-check-label">
+                  <input type="checkbox" [(ngModel)]="showLotSize" />
+                  <span>Lot Size</span>
+                </label>
+                <label class="customizer-check-label">
+                  <input type="checkbox" [(ngModel)]="showAllotmentRegistrar" />
+                  <span>Registrar & Allotment Link</span>
+                </label>
+                <label class="customizer-check-label">
+                  <input type="checkbox" [(ngModel)]="showAiAnalysis" />
+                  <span>✦ AI Copilot Analysis Button</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- View Layout Switcher -->
+          <div class="view-switch-group">
+            <button class="view-switch-btn"
+                    [class.active]="viewMode === 'table'"
+                    (click)="viewMode = 'table'"
+                    title="Groww Table List">
+              ☲ Table
+            </button>
+            <button class="view-switch-btn"
+                    [class.active]="viewMode === 'cards'"
+                    (click)="viewMode = 'cards'"
+                    title="Interactive Cards">
+              ▦ Cards
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 1. GROWW EXACT TABLE VIEW -->
+    <div class="groww-table-wrapper card glass-panel no-padding" *ngIf="viewMode === 'table'">
+      <div class="table-responsive">
+        <table class="groww-data-table">
+          <thead>
+            <tr>
+              <th class="col-company">Company Name</th>
+              <th class="col-type">Type</th>
+              <th class="col-date">
+                <span *ngIf="stageFilter === 'UPCOMING'">Opening Date</span>
+                <span *ngIf="stageFilter === 'OPEN'">Closing Date</span>
+                <span *ngIf="stageFilter === 'CLOSED'">Listing Date</span>
+                <span *ngIf="stageFilter === 'SUBSCRIPTION'">Total Bids</span>
+                <span *ngIf="stageFilter === 'ALLOTMENT'">Allotment Date</span>
+              </th>
+
+              <!-- Conditional Customization Columns -->
+              <th *ngIf="showGmp" class="col-gmp">GMP & Gain</th>
+              <th *ngIf="showPriceBand" class="col-price">Price Band</th>
+              <th *ngIf="showMinInvestment" class="col-invest">Min. Investment</th>
+              <th *ngIf="showIssueSize" class="col-size">Issue Size</th>
+              <th *ngIf="showLotSize" class="col-lot">Lot Size</th>
+
+              <!-- Subscription Breakup Columns if Subscription Stage -->
+              <th *ngIf="stageFilter === 'SUBSCRIPTION'" class="col-sub">QIB / NII / Retail</th>
+
+              <!-- Allotment Registrar Column if Allotment Stage or Custom Toggled -->
+              <th *ngIf="stageFilter === 'ALLOTMENT' || showAllotmentRegistrar" class="col-registrar">Registrar Status</th>
+
+              <!-- Groww Document Column -->
+              <th class="col-doc">Document</th>
+
+              <!-- AI Copilot Column -->
+              <th *ngIf="showAiAnalysis" class="col-action">AI Analysis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ipo of growwFilteredIpos" class="groww-row" (click)="askCopilotAboutIpo(ipo)">
+              <!-- Company Name with Groww Avatar Logo -->
+              <td class="col-company">
+                <div class="groww-company-cell">
+                  <div class="groww-avatar" [style.background-color]="ipo.logoColor || '#3B82F6'">
+                    <span>{{ getLogoInitials(ipo) }}</span>
+                  </div>
+                  <div class="groww-company-info">
+                    <span class="groww-company-name">{{ ipo.companyName }}</span>
+                    <span class="groww-company-meta">{{ ipo.symbol }} • {{ ipo.sector }}</span>
+                  </div>
+                </div>
+              </td>
+
+              <!-- Type (Mainboard or SME) -->
+              <td class="col-type">
+                <span class="groww-type-text" [class.type-sme]="ipo.ipoType === 'SME'">
+                  {{ ipo.ipoType || 'Mainboard' }}
+                </span>
+              </td>
+
+              <!-- Opening / Closing / Allotment Date -->
+              <td class="col-date">
+                <span class="groww-date-text" *ngIf="stageFilter === 'UPCOMING'">
+                  {{ ipo.openingDateDisplay || ipo.openDate || 'To be announced' }}
+                </span>
+                <span class="groww-date-text" *ngIf="stageFilter === 'OPEN'">
+                  Closes: {{ ipo.closeDate || 'Active' }}
+                </span>
+                <span class="groww-date-text" *ngIf="stageFilter === 'CLOSED'">
+                  {{ ipo.listingDate || ipo.status }}
+                </span>
+                <span class="groww-date-text" *ngIf="stageFilter === 'SUBSCRIPTION'">
+                  <strong class="text-profit">{{ ipo.subscriptionTimes | number:'1.2-2' }}x</strong>
+                </span>
+                <span class="groww-date-text" *ngIf="stageFilter === 'ALLOTMENT'">
+                  {{ ipo.allotmentDate || 'To be announced' }}
+                </span>
+              </td>
+
+              <!-- Custom: GMP & Expected Listing Gain -->
+              <td *ngIf="showGmp" class="col-gmp">
+                <div class="groww-gmp-cell">
+                  <span class="gmp-val text-profit">₹{{ ipo.gmp }}</span>
+                  <span class="gmp-gain" [ngClass]="ipo.gmpPercent >= 15 ? 'text-profit font-bold' : 'text-muted'">
+                    +{{ ipo.gmpPercent | number:'1.1-1' }}%
+                  </span>
+                </div>
+              </td>
+
+              <!-- Custom: Price Band -->
+              <td *ngIf="showPriceBand" class="col-price">
+                <span class="groww-price-band font-mono">{{ ipo.priceBand }}</span>
+              </td>
+
+              <!-- Custom: Min Investment -->
+              <td *ngIf="showMinInvestment" class="col-invest">
+                <span class="groww-min-inv font-mono">₹{{ ipo.minInvestment | number:'1.0-0' }}</span>
+              </td>
+
+              <!-- Custom: Issue Size -->
+              <td *ngIf="showIssueSize" class="col-size">
+                <span class="font-mono">₹{{ ipo.issueSizeCrores | number:'1.0-0' }} Cr</span>
+              </td>
+
+              <!-- Custom: Lot Size -->
+              <td *ngIf="showLotSize" class="col-lot">
+                <span class="font-mono">{{ ipo.lotSize }} shares</span>
+              </td>
+
+              <!-- Subscription Breakup (if Subscription stage) -->
+              <td *ngIf="stageFilter === 'SUBSCRIPTION'" class="col-sub">
+                <div class="sub-breakup-row font-mono">
+                  <span>QIB: <strong>{{ ipo.qibSubscriptionTimes | number:'1.1-1' }}x</strong></span>
+                  <span>NII: <strong>{{ ipo.niiSubscriptionTimes | number:'1.1-1' }}x</strong></span>
+                  <span>Ret: <strong>{{ ipo.retailSubscriptionTimes | number:'1.1-1' }}x</strong></span>
+                </div>
+              </td>
+
+              <!-- Allotment Registrar Status -->
+              <td *ngIf="stageFilter === 'ALLOTMENT' || showAllotmentRegistrar" class="col-registrar">
+                <div class="registrar-cell">
+                  <span class="registrar-name">{{ ipo.registrar || 'Link Intime' }}</span>
+                  <a class="registrar-link" (click)="openRegistrarUrl(ipo, $event)" target="_blank">Check Allotment ↗</a>
+                </div>
+              </td>
+
+              <!-- Groww Document Column (↗ IPO Doc) -->
+              <td class="col-doc" (click)="$event.stopPropagation()">
+                <a *ngIf="ipo.docUrl"
+                   class="groww-ipo-doc-link"
+                   (click)="openDocUrl(ipo, $event)"
+                   target="_blank"
+                   title="Open SEBI Prospectus / DRHP">
+                  ↗ IPO Doc
+                </a>
+                <span *ngIf="!ipo.docUrl" class="text-muted" style="font-size: 0.8rem;">—</span>
+              </td>
+
+              <!-- AI Copilot Button -->
+              <td *ngIf="showAiAnalysis" class="col-action" (click)="$event.stopPropagation()">
+                <button class="groww-copilot-btn" (click)="askCopilotAboutIpo(ipo)">
+                  ✦ Ask Copilot
+                </button>
+              </td>
+            </tr>
+
+            <!-- Empty State -->
+            <tr *ngIf="growwFilteredIpos.length === 0">
+              <td [attr.colspan]="10" class="empty-state-cell">
+                <div class="groww-empty-box">
+                  <span class="empty-icon">📂</span>
+                  <h4>No IPOs found for selected criteria</h4>
+                  <p>Try switching to "All" or change the filter stage.</p>
+                  <button class="btn btn-secondary btn-sm" (click)="ipoTypeFilter = 'ALL'; searchQuery = ''; stageFilter = 'UPCOMING'">
+                    Reset Filters
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- 2. CARDS VIEW (WHEN TOGGLED) -->
+    <div class="groww-cards-grid" *ngIf="viewMode === 'cards'">
+      <div class="groww-ipo-card glass-panel" *ngFor="let ipo of growwFilteredIpos">
+        <div class="card-head">
+          <div class="groww-avatar" [style.background-color]="ipo.logoColor || '#3B82F6'">
+            <span>{{ getLogoInitials(ipo) }}</span>
+          </div>
+          <div class="head-text">
+            <h4 class="card-title">{{ ipo.companyName }}</h4>
+            <span class="card-meta">{{ ipo.symbol }} • {{ ipo.sector }}</span>
+          </div>
+          <span class="groww-type-pill" [class.type-sme]="ipo.ipoType === 'SME'">
+            {{ ipo.ipoType || 'Mainboard' }}
+          </span>
+        </div>
+
+        <div class="card-details-grid">
+          <div class="detail-box">
+            <span class="detail-label">Opening Date</span>
+            <span class="detail-val">{{ ipo.openingDateDisplay || ipo.openDate || 'To be announced' }}</span>
+          </div>
+          <div class="detail-box">
+            <span class="detail-label">Price Band</span>
+            <span class="detail-val font-mono">{{ ipo.priceBand }}</span>
+          </div>
+          <div class="detail-box" *ngIf="showGmp">
+            <span class="detail-label">Grey Market (GMP)</span>
+            <span class="detail-val text-profit font-bold">₹{{ ipo.gmp }} (+{{ ipo.gmpPercent | number:'1.1-1' }}%)</span>
+          </div>
+          <div class="detail-box" *ngIf="showMinInvestment">
+            <span class="detail-label">Min. Investment</span>
+            <span class="detail-val font-mono">₹{{ ipo.minInvestment | number:'1.0-0' }}</span>
+          </div>
+        </div>
+
+        <div class="card-explanation" *ngIf="ipo.gmpExplanationSimple">
+          {{ ipo.gmpExplanationSimple }}
+        </div>
+
+        <div class="card-footer-actions">
+          <a *ngIf="ipo.docUrl"
+             class="groww-ipo-doc-link"
+             (click)="openDocUrl(ipo, $event)"
+             target="_blank">
+            ↗ IPO Doc
+          </a>
+          <button class="groww-copilot-btn" (click)="askCopilotAboutIpo(ipo)">
+            ✦ Ask Copilot
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Educational / GMP Explainer Footer Banner -->
+    <div class="gmp-banner glass-panel" style="margin-top: 10px;">
+      <div class="gmp-banner-main">
+        <div class="gmp-info-col">
+          <div class="gmp-title-row">
+            <span class="gmp-badge-tag">GMP Explained</span>
+            <span class="gmp-text">Grey Market Premium is the unofficial premium buyers pay ahead of official exchange listing.</span>
+          </div>
+          <div class="gmp-rules-line">
+            <span class="rule-item text-profit">● &gt;20% High Demand</span>
+            <span class="rule-item text-muted">● 0–10% Muted / Flat</span>
+            <span class="rule-item text-loss">● Negative: Discount</span>
+          </div>
+        </div>
+
+        <div class="gmp-calc-pill">
+          <div class="calc-box">
+            <span class="calc-label">Issue Price</span>
+            <span class="calc-num">₹100</span>
+          </div>
+          <span class="calc-op">+</span>
+          <div class="calc-box">
+            <span class="calc-label">GMP</span>
+            <span class="calc-num text-profit">₹30</span>
+          </div>
+          <span class="calc-op">=</span>
+          <div class="calc-box calc-res">
+            <span class="calc-label">Est. Listing Price</span>
+            <span class="calc-num text-profit">₹130 <small>(+30%)</small></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: Company Revenue & Why Price Falls / Rises -->
+  <div *ngIf="activeTab === 'revenue-drivers'" class="tab-content-panel">
+    <!-- Stock Selector Bar -->
+    <div class="stock-selector-card glass-panel">
+      <span class="selector-title">Select Asset:</span>
+      <div class="stock-pill-row">
+        <button *ngFor="let sym of availableStocks"
+                class="stock-select-pill"
+                [class.active]="sym === selectedStockSymbol"
+                (click)="loadStockFinancials(sym)">
+          {{ sym }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Company Analysis Card -->
+    <div *ngIf="financials && !isLoadingFinancials" class="financials-dashboard">
+      <!-- Top Overview Banner -->
+      <div class="stock-overview-banner glass-panel">
+        <div class="stock-meta-left">
+          <div class="ticker-large">{{ financials.companyName }} <span class="text-muted">({{ financials.symbol }})</span></div>
+          <div class="sector-tag">{{ financials.sector }} • Market Cap: ₹{{ financials.marketCapCrores | number:'1.0-0' }} Cr</div>
+        </div>
+        <div class="stock-price-right">
+          <div class="price-big font-mono">₹{{ financials.currentPrice | number:'1.2-2' }}</div>
+          <div [ngClass]="financials.dayChangePercent >= 0 ? 'text-profit' : 'text-loss'" class="font-bold">
+            {{ financials.dayChangePercent >= 0 ? '+' : '' }}{{ financials.dayChangePercent | number:'1.2-2' }}%
+          </div>
+          <div class="ratios-row">
+            <span>P/E: <strong>{{ financials.peRatio ? (financials.peRatio | number:'1.1-1') + 'x' : '—' }}</strong></span>
+            <span>ROE: <strong>{{ financials.roePercent ? (financials.roePercent | number:'1.1-1') + '%' : '—' }}</strong></span>
+            <span>ROCE: <strong>{{ financials.rocePercent ? (financials.rocePercent | number:'1.1-1') + '%' : '—' }}</strong></span>
+          </div>
+          <button class="btn btn-secondary btn-sm" style="margin-top: 10px;" (click)="askCopilotAboutStock(financials.symbol)">
+            ✦ Analyse {{ financials.symbol }} with AI
+          </button>
+        </div>
+      </div>
+
+      <!-- Catalysts & Headwinds Split Grid -->
+      <div class="drivers-split-grid">
+        <!-- Bullish Growth Drivers -->
+        <div class="driver-card driver-bullish glass-panel">
+          <div class="driver-card-header text-profit">
+            <span class="indicator-dot dot-green"></span>
+            <h4>Growth Catalysts & Upside Drivers</h4>
+          </div>
+          <ul class="driver-list">
+            <li *ngFor="let up of financials.whyPriceIsRising" class="driver-item">
+              <span class="bullet-dot bullet-green"></span>
+              <span>{{ up }}</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Bearish Headwinds / Reasons for Fall -->
+        <div class="driver-card driver-bearish glass-panel">
+          <div class="driver-card-header text-loss">
+            <span class="indicator-dot dot-red"></span>
+            <h4>Headwinds, Margin Risks & Downside Triggers</h4>
+          </div>
+          <ul class="driver-list">
+            <li *ngFor="let down of financials.whyPriceIsFalling" class="driver-item">
+              <span class="bullet-dot bullet-red"></span>
+              <span>{{ down }}</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Strategic Verdict Box -->
+      <div class="verdict-card glass-panel">
+        <div class="verdict-content">
+          <strong>Strategic Take:</strong>
+          <p>{{ financials.summaryVerdict }}</p>
+        </div>
+      </div>
+
+      <!-- Revenue & Earnings Quarterly Trajectory -->
+      <div class="revenue-chart-card glass-panel">
+        <div class="chart-header">
+          <div>
+            <h4>Quarterly Revenue & Profit Trajectory (₹ in Crores)</h4>
+            <span class="subtext">Revenue expansion vs net profitability and operating margins</span>
+          </div>
+        </div>
+
+        <div class="quarterly-bars-container">
+          <div *ngFor="let q of financials.quarterlyResults" class="quarter-row">
+            <div class="quarter-label">
+              <strong>{{ q.quarter }}</strong>
+              <span class="margin-pill">OPM: {{ q.operatingMarginPercent | number:'1.1-1' }}%</span>
+            </div>
+
+            <div class="bars-track">
+              <!-- Revenue Bar -->
+              <div class="bar-fill bar-revenue" [style.width.%]="getRevenueBarWidth(q.revenueCrores, 90000)">
+                <span class="bar-value">Rev: ₹{{ q.revenueCrores | number:'1.0-0' }} Cr</span>
+              </div>
+              <!-- Profit Bar -->
+              <div class="bar-fill bar-profit" [style.width.%]="getRevenueBarWidth(q.netProfitCrores * 4, 90000)">
+                <span class="bar-value">Profit: ₹{{ q.netProfitCrores | number:'1.0-0' }} Cr</span>
+              </div>
+            </div>
+
+            <div class="growth-stats">
+              <span class="text-profit font-bold">+{{ q.yoYRevenueGrowthPercent | number:'1.1-1' }}% YoY</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Multi-Year Annual Financials Table -->
+        <div class="annual-table-section">
+          <h5>Annual Financial Growth (FY24 – FY26E)</h5>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Year</th>
+                <th>Revenue</th>
+                <th>EBITDA</th>
+                <th>Net Profit</th>
+                <th>Operating Margin</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let a of financials.annualResults">
+                <td><strong>{{ a.year }}</strong></td>
+                <td>₹{{ a.revenueCrores | number:'1.0-0' }} Cr</td>
+                <td>₹{{ a.ebitdaCrores | number:'1.0-0' }} Cr</td>
+                <td class="font-bold text-profit">₹{{ a.netProfitCrores | number:'1.0-0' }} Cr</td>
+                <td><span class="badge badge-tool">{{ a.operatingMarginPercent | number:'1.1-1' }}%</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Futures & Derivatives Traction -->
+  <div *ngIf="activeTab === 'futures'" class="tab-content-panel">
+    <!-- Futures Overview Cards -->
+    <div class="futures-grid">
+      <div *ngFor="let f of futures" class="contract-card glass-panel">
+        <div class="contract-header">
+          <div class="contract-name">{{ f.symbol }}</div>
+          <span class="badge" [ngClass]="f.buildupType.includes('Long') ? 'badge-profit' : 'badge-tool'">
+            {{ f.buildupType }}
+          </span>
+        </div>
+
+        <div class="contract-prices-row">
+          <div class="price-item">
+            <span class="lbl">Spot</span>
+            <span class="val font-mono">₹{{ f.spotPrice | number:'1.2-2' }}</span>
+          </div>
+          <div class="price-item">
+            <span class="lbl">Futures</span>
+            <span class="val font-mono font-bold">₹{{ f.futuresPrice | number:'1.2-2' }}</span>
+          </div>
+          <div class="price-item">
+            <span class="lbl">Basis</span>
+            <span class="val font-mono text-profit">+₹{{ f.basisPremiumDiscount | number:'1.2-2' }}</span>
+          </div>
+        </div>
+
+        <div class="oi-stats-box">
+          <div class="oi-row">
+            <span>Open Interest (OI): <strong>{{ f.openInterest | number:'1.0-0' }}</strong></span>
+            <span class="text-profit font-bold">+{{ f.openInterestChangePercent | number:'1.2-2' }}%</span>
+          </div>
+          <div class="pcr-row">
+            <span>PCR: <strong>{{ f.putCallRatio | number:'1.2-2' }}</strong></span>
+            <span class="pcr-tag font-bold text-profit">{{ f.pcrSentiment }}</span>
+          </div>
+          <div class="max-pain-row">
+            <span>Max Pain: <strong>₹{{ f.maxPain | number:'1.0-0' }}</strong></span>
+          </div>
+        </div>
+
+        <div class="buildup-desc-box">
+          <p>{{ f.buildupDescription }}</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: 10px;" (click)="askCopilotAboutFuture(f)">
+          ✦ Ask Copilot About {{ f.symbol }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Derivatives Education Guide -->
+    <div class="card glass-panel">
+      <div class="card-header-inner">
+        <h4>Derivatives Buildup Decoded</h4>
+      </div>
+      <div class="fno-education-grid">
+        <div class="edu-card">
+          <div class="edu-title text-profit">Long Buildup (Bullish)</div>
+          <p>Price Rising + OI Rising: Aggressive institutional accumulation expecting further price rise.</p>
+        </div>
+        <div class="edu-card">
+          <div class="edu-title text-profit">Short Covering (Rally)</div>
+          <p>Price Rising + OI Falling: Short sellers closing positions under pressure.</p>
+        </div>
+        <div class="edu-card">
+          <div class="edu-title text-loss">Short Buildup (Bearish)</div>
+          <p>Price Falling + OI Rising: Fresh short positions added expecting further downside.</p>
+        </div>
+        <div class="edu-card">
+          <div class="edu-title text-loss">Long Unwinding</div>
+          <p>Price Falling + OI Falling: Buyers booking profit or exiting long positions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: Multi-Source Market Pulse -->
+  <div *ngIf="activeTab === 'market'" class="tab-content-panel">
+    <div *ngIf="marketPulse" class="market-pulse-container">
+      <!-- Indices Ribbon -->
+      <div class="indices-grid">
+        <div *ngFor="let idx of marketPulse.majorIndices" class="index-card glass-panel">
+          <div class="idx-name">{{ idx.name }}</div>
+          <div class="idx-val font-mono">₹{{ idx.value | number:'1.2-2' }}</div>
+          <div [ngClass]="idx.change >= 0 ? 'text-profit' : 'text-loss'" class="idx-chg font-bold">
+            {{ idx.change >= 0 ? '+' : '' }}{{ idx.change | number:'1.2-2' }} ({{ idx.changePercent | number:'1.2-2' }}%)
+          </div>
+          <div class="idx-range font-mono">Range: {{ idx.low | number:'1.0-0' }} – {{ idx.high | number:'1.0-0' }}</div>
+        </div>
+      </div>
+
+      <!-- FII / DII Flows Card -->
+      <div class="fii-dii-card glass-panel">
+        <div class="fii-header">
+          <h4>Institutional Flows (FII vs DII)</h4>
+          <span class="subtext">Net cash market investments for {{ marketPulse.institutionalFlows.date }}</span>
+        </div>
+        <div class="flows-split-row">
+          <div class="flow-box">
+            <span class="flow-lbl">FII Net Cash</span>
+            <span class="flow-val text-loss font-mono">₹{{ marketPulse.institutionalFlows.fiiNetCrores | number:'1.2-2' }} Cr</span>
+            <span class="flow-hint">Institutional Selling</span>
+          </div>
+          <div class="flow-box">
+            <span class="flow-lbl">DII Net Cash</span>
+            <span class="flow-val text-profit font-mono">+₹{{ marketPulse.institutionalFlows.diiNetCrores | number:'1.2-2' }} Cr</span>
+            <span class="flow-hint">Mutual Funds Buying</span>
+          </div>
+          <div class="flow-box flow-net">
+            <span class="flow-lbl">Net Liquidity Impact</span>
+            <span class="flow-val text-profit font-mono font-bold">+₹{{ marketPulse.institutionalFlows.netTotalCrores | number:'1.2-2' }} Cr</span>
+            <span class="flow-hint">Total Net Inflow</span>
+          </div>
+        </div>
+        <div class="flow-interp">
+          {{ marketPulse.institutionalFlows.interpretation }}
+        </div>
+      </div>
+
+      <!-- Market Breadth & Sector Grid -->
+      <div class="breadth-sector-grid">
+        <!-- Market Breadth -->
+        <div class="card glass-panel">
+          <h4>Market Breadth</h4>
+          <div class="breadth-stat-row">
+            <div class="breadth-box text-profit">
+              <span class="b-num">{{ marketPulse.marketBreadth.advances }}</span>
+              <span class="b-lbl">Advances</span>
+            </div>
+            <div class="breadth-box text-loss">
+              <span class="b-num">{{ marketPulse.marketBreadth.declines }}</span>
+              <span class="b-lbl">Declines</span>
+            </div>
+            <div class="breadth-box text-muted">
+              <span class="b-num">{{ marketPulse.marketBreadth.unchanged }}</span>
+              <span class="b-lbl">Unchanged</span>
+            </div>
+          </div>
+          <div class="advance-decline-ratio">
+            <span>A/D Ratio: <strong>{{ marketPulse.marketBreadth.advanceDeclineRatio | number:'1.2-2' }}</strong></span>
+          </div>
+        </div>
+
+        <!-- Sector Performance -->
+        <div class="card glass-panel">
+          <h4>Sector Momentum</h4>
+          <div class="sector-pills-container">
+            <div *ngFor="let sec of marketPulse.sectorPerformance" class="sector-badge-item">
+              <span class="sec-name">{{ sec.sectorName }}</span>
+              <span [ngClass]="sec.changePercent >= 0 ? 'text-profit' : 'text-loss'" class="font-bold">
+                {{ sec.changePercent >= 0 ? '+' : '' }}{{ sec.changePercent | number:'1.2-2' }}%
+              </span>
+              <span class="sec-lead">{{ sec.topStock }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

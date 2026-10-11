@@ -1,0 +1,181 @@
+<div class="dashboard-wrapper">
+  <!-- Kite Connection & Demo Mode Banner -->
+  <div class="account-banner glass-panel">
+    <div class="account-info">
+      <div class="broker-badge">
+        <span class="broker-logo">⚡</span>
+        <span class="broker-name">ZERODHA KITE CONNECT</span>
+      </div>
+      <div class="account-user">
+        <span class="user-name">{{ kiteSession.userName || 'Investor' }}</span>
+        <span class="client-id">({{ kiteSession.userId || 'ZD9821' }})</span>
+        <span class="mode-pill live-pill">
+          ● LIVE NSE/BSE TELEMETRY ACTIVE
+        </span>
+      </div>
+    </div>
+    <div class="account-actions">
+      <button class="btn btn-secondary btn-sm" (click)="loadData()" title="Fetch fresh market quotes">
+        ↻ Refresh Live Feed
+      </button>
+      <a routerLink="/chat" class="btn btn-primary btn-sm">
+        <span>💬 Ask Copilot</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- KPI Overview Metrics Cards -->
+  <div class="metrics-grid">
+    <!-- Card 1: Total Portfolio Value -->
+    <div class="metric-card glass-panel" title="What your investments are worth right now at current market prices">
+      <div class="metric-label">
+        <span>Total Portfolio Value</span>
+        <span class="info-pill" title="Current value of all stocks and ETFs you own in Zerodha">ℹ️</span>
+      </div>
+      <div class="metric-value">₹{{ totalCurrent | number:'1.2-2' }}</div>
+      <div class="metric-subtext">
+        <span>Invested: ₹{{ totalInvested | number:'1.2-2' }} (Original cost)</span>
+      </div>
+    </div>
+
+    <!-- Card 2: Overall Unrealized P&L -->
+    <div class="metric-card glass-panel" [class.card-profit]="totalPnL >= 0" [class.card-loss]="totalPnL < 0" title="Your overall profit or loss on paper. 'Unrealized' means it is not locked in until you sell.">
+      <div class="metric-label">
+        <span>Overall Unrealized P&L</span>
+        <span class="info-pill" title="Profit or Loss on paper since you bought these shares">ℹ️</span>
+      </div>
+      <div class="metric-value" [ngClass]="totalPnL >= 0 ? 'text-profit' : 'text-loss'">
+        {{ totalPnL >= 0 ? '+' : '' }}₹{{ totalPnL | number:'1.2-2' }}
+      </div>
+      <div class="metric-subtext">
+        <span class="badge" [ngClass]="totalPnL >= 0 ? 'bg-profit' : 'bg-loss'">
+          {{ totalPnLPercent >= 0 ? '+' : '' }}{{ totalPnLPercent | number:'1.2-2' }}% Total Return
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 3: Today's Change -->
+    <div class="metric-card glass-panel" [class.card-profit]="dayPnL >= 0" [class.card-loss]="dayPnL < 0" title="How much your portfolio gained or lost during today's trading hours compared to yesterday.">
+      <div class="metric-label">
+        <span>Today's P&L Movement</span>
+        <span class="info-pill" title="Intraday profit/loss movement today compared to yesterday's close">ℹ️</span>
+      </div>
+      <div class="metric-value" [ngClass]="dayPnL >= 0 ? 'text-profit' : 'text-loss'">
+        {{ dayPnL >= 0 ? '+' : '' }}₹{{ dayPnL | number:'1.2-2' }}
+      </div>
+      <div class="metric-subtext">
+        <span class="badge" [ngClass]="dayPnL >= 0 ? 'bg-profit' : 'bg-loss'">
+          {{ dayPnLPercent >= 0 ? '+' : '' }}{{ dayPnLPercent | number:'1.2-2' }}% Intraday
+        </span>
+      </div>
+    </div>
+
+    <!-- Card 4: Available Cash Margin -->
+    <div class="metric-card glass-panel" title="Liquid cash sitting in your Zerodha account available to buy new shares immediately.">
+      <div class="metric-label">
+        <span>Available Margin & Cash</span>
+        <span class="info-pill" title="Unused cash in your trading account ready to purchase new investments">ℹ️</span>
+      </div>
+      <div class="metric-value text-info">₹{{ funds.availableMargin | number:'1.2-2' }}</div>
+      <div class="metric-subtext">
+        <span>Margin Used: ₹{{ funds.usedMargin | number:'1.2-2' }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content 2-Column Section -->
+  <div class="dashboard-columns">
+    <!-- Left Column: Holdings Quick Summary -->
+    <div class="column-left glass-panel">
+      <div class="panel-header">
+        <div>
+          <h3>Portfolio Holdings ({{ holdings.length }})</h3>
+          <p class="subtitle">Directly synced from Kite Personal API</p>
+        </div>
+        <a routerLink="/portfolio" class="view-all-link">Full Portfolio →</a>
+      </div>
+
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Instrument</th>
+              <th>Qty</th>
+              <th>Avg Buy</th>
+              <th>LTP</th>
+              <th>Day Change</th>
+              <th>Unrealized P&L</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let h of holdings.slice(0, 5)">
+              <td>
+                <div class="ticker-symbol">{{ h.symbol }}</div>
+                <div class="ticker-exchange">{{ h.exchange }}</div>
+              </td>
+              <td>{{ h.quantity }}</td>
+              <td>₹{{ h.averagePrice | number:'1.2-2' }}</td>
+              <td>₹{{ h.lastPrice | number:'1.2-2' }}</td>
+              <td [ngClass]="h.dayChangePercent >= 0 ? 'text-profit' : 'text-loss'">
+                {{ h.dayChangePercent >= 0 ? '+' : '' }}{{ h.dayChangePercent | number:'1.2-2' }}%
+              </td>
+              <td [ngClass]="h.pnL >= 0 ? 'text-profit' : 'text-loss'" class="font-bold">
+                {{ h.pnL >= 0 ? '+' : '' }}₹{{ h.pnL | number:'1.2-2' }}
+              </td>
+              <td>
+                <button class="btn btn-secondary btn-sm" (click)="analyzeWithGemini(h.symbol)">
+                  ✦ Analyse
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Right Column: Watchlists & Intelligence Shortcuts -->
+    <div class="column-right">
+      <!-- Custom Watchlists Summary Card -->
+      <div class="summary-card glass-panel">
+        <div class="panel-header">
+          <div>
+            <h3>Your Watchlists</h3>
+            <p class="subtitle">Personal database separation from Kite UI</p>
+          </div>
+          <a routerLink="/watchlists" class="view-all-link">Manage →</a>
+        </div>
+
+        <div class="watchlist-chips-list">
+          <div *ngFor="let wl of watchlists" class="watchlist-chip">
+            <div class="wl-chip-top">
+              <span class="wl-chip-name">{{ wl.name }}</span>
+              <span class="wl-chip-type">{{ wl.type }}</span>
+            </div>
+            <div class="wl-chip-count">{{ wl.items.length }} assets tracked</div>
+            <div class="wl-chip-symbols">
+              <span *ngFor="let item of wl.items.slice(0, 4)" class="symbol-tag">{{ item.symbol }}</span>
+              <span *ngIf="wl.items.length > 4" class="symbol-tag-more">+{{ wl.items.length - 4 }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Copilot Quick Capabilities Card -->
+      <div class="summary-card glass-panel gemini-feature-card">
+        <div class="gemini-header">
+          <span class="gemini-icon">✦</span>
+          <h4>Gemini Hybrid RAG Research</h4>
+        </div>
+        <p class="gemini-feature-desc">
+          Structured Kite account data meets semantic RAG over SEBI filings, earnings call transcripts, and your personal investment thesis memory.
+        </p>
+        <div class="quick-links">
+          <a routerLink="/thesis" class="quick-link-btn">🎯 Investment Thesis Check</a>
+          <a routerLink="/research" class="quick-link-btn">🔬 ETF & Equity Comparison</a>
+          <a routerLink="/audit-log" class="quick-link-btn">🛡️ AI Safety Audit Log</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

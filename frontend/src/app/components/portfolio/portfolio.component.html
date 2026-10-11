@@ -1,0 +1,266 @@
+<div class="portfolio-page">
+  <!-- Profile & Kite Auth Header -->
+  <div class="portfolio-header glass-panel">
+    <div class="header-left">
+      <div class="avatar-ring">
+        <span>💼</span>
+      </div>
+      <div>
+        <h2>Kite Portfolio & Terminal</h2>
+        <p class="subtitle">
+          Account ID: <span class="mono-id">{{ profile.userId || 'SUR7821' }}</span> | {{ profile.userName }} 
+          <span class="badge badge-profit" style="margin-left: 8px; font-weight: 600;">● Live NSE/BSE Telemetry Active</span>
+        </p>
+      </div>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-secondary btn-sm" (click)="connectZerodha()">
+        ⚡ Connect Kite Session
+      </button>
+      <button class="btn btn-primary btn-sm" [disabled]="isRefreshing" (click)="loadAll()">
+        <span *ngIf="!isRefreshing">⟳ Sync Live Prices</span>
+        <span *ngIf="isRefreshing">🔄 Syncing...</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Sub-Tabs Navigation -->
+  <div class="portfolio-nav-bar">
+    <button class="nav-tab" [class.active]="activeTab === 'holdings'" (click)="setTab('holdings')">
+      Holdings ({{ holdings.length }})
+    </button>
+    <button class="nav-tab" [class.active]="activeTab === 'chart'" (click)="setTab('chart')">
+      📊 Interactive Chart ({{ selectedSymbol }})
+    </button>
+    <button class="nav-tab" [class.active]="activeTab === 'positions'" (click)="setTab('positions')">
+      Positions ({{ positions.length }})
+    </button>
+    <button class="nav-tab" [class.active]="activeTab === 'funds'" (click)="setTab('funds')">
+      Funds & Margin
+    </button>
+    <button class="nav-tab" [class.active]="activeTab === 'orders'" (click)="setTab('orders')">
+      Order Book ({{ orders.length }})
+    </button>
+  </div>
+
+  <!-- TAB 1: Holdings -->
+  <div *ngIf="activeTab === 'holdings'" class="glass-panel tab-content-card">
+    <div class="portfolio-summary-bar">
+      <div class="stat-item">
+        <span class="stat-label">Total Current Value</span>
+        <span class="stat-val font-mono">₹{{ totalCurrent | number:'1.2-2' }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Total Investment</span>
+        <span class="stat-val font-mono">₹{{ totalInvested | number:'1.2-2' }}</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">Total Unrealized P&L</span>
+        <span class="stat-val font-mono" [ngClass]="totalPnL >= 0 ? 'text-profit' : 'text-loss'">
+          {{ totalPnL >= 0 ? '+' : '' }}₹{{ totalPnL | number:'1.2-2' }} ({{ totalPnLPercent >= 0 ? '+' : '' }}{{ totalPnLPercent | number:'1.2-2' }}%)
+        </span>
+      </div>
+    </div>
+
+    <div class="data-table-wrapper" *ngIf="holdings.length > 0">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Instrument</th>
+            <th>Quantity</th>
+            <th>Avg Buy Price</th>
+            <th>LTP (Current)</th>
+            <th>Invested Val</th>
+            <th>Current Val</th>
+            <th>Day's Change</th>
+            <th>Total P&L</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let h of holdings">
+            <td>
+              <div class="ticker-symbol">{{ h.symbol }}</div>
+              <div class="ticker-exchange">{{ h.exchange }}</div>
+            </td>
+            <td>{{ h.quantity }}</td>
+            <td>₹{{ h.averagePrice | number:'1.2-2' }}</td>
+            <td class="font-mono">₹{{ h.lastPrice | number:'1.2-2' }}</td>
+            <td>₹{{ h.investedValue | number:'1.2-2' }}</td>
+            <td class="font-mono font-bold">₹{{ h.currentValue | number:'1.2-2' }}</td>
+            <td [ngClass]="h.dayChangePercent >= 0 ? 'text-profit' : 'text-loss'">
+              {{ h.dayChangePercent >= 0 ? '+' : '' }}{{ h.dayChangePercent | number:'1.2-2' }}%
+            </td>
+            <td [ngClass]="h.pnL >= 0 ? 'text-profit' : 'text-loss'" class="font-bold">
+              <div>{{ h.pnL >= 0 ? '+' : '' }}₹{{ h.pnL | number:'1.2-2' }}</div>
+              <div class="pnl-pct">({{ h.pnLPercent >= 0 ? '+' : '' }}{{ h.pnLPercent | number:'1.2-2' }}%)</div>
+            </td>
+            <td>
+              <div class="action-btn-group">
+                <button class="btn btn-secondary btn-sm" (click)="viewChart(h.symbol)" title="View Live Chart">
+                  📈 Chart
+                </button>
+                <button class="btn btn-primary btn-sm" (click)="analyzeSymbol(h.symbol)" title="Ask Gemini Copilot">
+                  ✦ Copilot
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="empty-state" *ngIf="holdings.length === 0 && !isLoading">
+      <p class="empty-icon">💼</p>
+      <h4>No holdings found or broker API synchronizing</h4>
+      <p class="empty-subtext">Click below to refresh live holdings from Zerodha Kite.</p>
+      <button class="btn btn-primary btn-sm" (click)="loadAll()">⟳ Refresh Data Now</button>
+    </div>
+  </div>
+
+  <!-- TAB: Live Technical Chart -->
+  <div *ngIf="activeTab === 'chart'" class="glass-panel tab-content-card">
+    <div class="chart-header-bar">
+      <div class="chart-title-area">
+        <h3>📈 Live Technical Chart: <span class="text-primary">{{ selectedSymbol }}</span></h3>
+        <p class="subtitle">Real-time candlesticks, indicators & volume powered by TradingView</p>
+      </div>
+
+      <!-- Quick Ticker Switcher Buttons -->
+      <div class="ticker-pills-row">
+        <span class="pills-label">Switch Instrument:</span>
+        <button *ngFor="let h of holdings" 
+                class="ticker-pill-btn" 
+                [class.active]="selectedSymbol === h.symbol"
+                (click)="viewChart(h.symbol)">
+          {{ h.symbol }}
+        </button>
+      </div>
+    </div>
+
+    <!-- TradingView Embed Iframe Container -->
+    <div class="tradingview-frame-wrapper">
+      <iframe [src]="getChartUrl(selectedSymbol)" 
+              class="tradingview-iframe"
+              allowtransparency="true" 
+              frameborder="0">
+      </iframe>
+    </div>
+  </div>
+
+  <!-- TAB 2: Positions -->
+  <div *ngIf="activeTab === 'positions'" class="glass-panel tab-content-card">
+    <div class="panel-header">
+      <div>
+        <h3>Intraday & Open Derivatives Positions</h3>
+        <p class="subtitle">Direct positions report from Kite</p>
+      </div>
+    </div>
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Instrument</th>
+            <th>Product</th>
+            <th>Net Quantity</th>
+            <th>Buy Price</th>
+            <th>Sell Price</th>
+            <th>LTP</th>
+            <th>Unrealized P&L</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of positions">
+            <td>
+              <div class="ticker-symbol">{{ p.symbol }}</div>
+              <div class="ticker-exchange">{{ p.exchange }}</div>
+            </td>
+            <td><span class="badge badge-tool">{{ p.product }}</span></td>
+            <td>{{ p.quantity }}</td>
+            <td>₹{{ p.buyPrice | number:'1.2-2' }}</td>
+            <td>₹{{ p.sellPrice | number:'1.2-2' }}</td>
+            <td class="font-mono">₹{{ p.lastPrice | number:'1.2-2' }}</td>
+            <td [ngClass]="p.pnL >= 0 ? 'text-profit' : 'text-loss'" class="font-bold font-mono">
+              {{ p.pnL >= 0 ? '+' : '' }}₹{{ p.pnL | number:'1.2-2' }}
+            </td>
+          </tr>
+          <tr *ngIf="positions.length === 0">
+            <td colspan="7" class="text-center py-4 text-muted">No open intraday positions today.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- TAB 3: Funds & Margin -->
+  <div *ngIf="activeTab === 'funds'" class="glass-panel tab-content-card p-6">
+    <h3 class="mb-4">Funds & Margins Breakdown</h3>
+    <div class="funds-grid">
+      <div class="funds-card glass-panel">
+        <span class="funds-label">Available Cash Margin</span>
+        <span class="funds-amount text-profit font-mono">₹{{ funds.availableMargin | number:'1.2-2' }}</span>
+        <span class="funds-desc">Available for immediate equity purchases</span>
+      </div>
+      <div class="funds-card glass-panel">
+        <span class="funds-label">Used Margin</span>
+        <span class="funds-amount text-loss font-mono">₹{{ funds.usedMargin | number:'1.2-2' }}</span>
+        <span class="funds-desc">Utilized in open intraday and delivery orders</span>
+      </div>
+      <div class="funds-card glass-panel">
+        <span class="funds-label">Collateral Margin</span>
+        <span class="funds-amount font-mono">₹{{ funds.collateralMargin | number:'1.2-2' }}</span>
+        <span class="funds-desc">Margin received against pledged securities</span>
+      </div>
+      <div class="funds-card glass-panel">
+        <span class="funds-label">Total Purchasing Power</span>
+        <span class="funds-amount text-info font-mono">₹{{ funds.totalMargin | number:'1.2-2' }}</span>
+        <span class="funds-desc">Cash balance + Collateral allowance</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: Orders History -->
+  <div *ngIf="activeTab === 'orders'" class="glass-panel tab-content-card">
+    <div class="panel-header">
+      <div>
+        <h3>Executed & Past Orders</h3>
+        <p class="subtitle">Read-only historical orderbook audit</p>
+      </div>
+    </div>
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Instrument</th>
+            <th>Type</th>
+            <th>Qty</th>
+            <th>Price</th>
+            <th>Status</th>
+            <th>Timestamp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let o of orders">
+            <td class="font-mono text-muted">{{ o.orderId }}</td>
+            <td>
+              <div class="ticker-symbol">{{ o.symbol }}</div>
+              <div class="ticker-exchange">{{ o.exchange }}</div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="o.transactionType === 'BUY' ? 'bg-profit' : 'bg-loss'">
+                {{ o.transactionType }}
+              </span>
+            </td>
+            <td>{{ o.quantity }}</td>
+            <td class="font-mono">₹{{ o.price | number:'1.2-2' }}</td>
+            <td>
+              <span class="badge" [class.badge-tool]="o.status === 'COMPLETE'">{{ o.status }}</span>
+            </td>
+            <td class="font-mono text-muted">{{ o.orderTimestamp | date:'medium' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

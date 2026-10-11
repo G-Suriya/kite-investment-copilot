@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KiteCopilot.Domain", "KiteCopilot.Domain\KiteCopilot.Domain.csproj", "{DBA84954-DDDB-4E47-B613-6E8185A69962}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KiteCopilot.Application", "KiteCopilot.Application\KiteCopilot.Application.csproj", "{FB2161A4-B282-4E42-8FF7-29E0F65CDA4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KiteCopilot.Infrastructure", "KiteCopilot.Infrastructure\KiteCopilot.Infrastructure.csproj", "{3334FF2E-BB59-48AD-B523-477FE89CE2AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KiteCopilot.API", "KiteCopilot.API\KiteCopilot.API.csproj", "{B6F36E43-E70F-4338-B2AE-E3CF6BE9DB84}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "KiteCopilot.Tests", "KiteCopilot.Tests\KiteCopilot.Tests.csproj", "{A91FAD3D-C8B2-4901-A6F1-C1D017E8CFF7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{DBA84954-DDDB-4E47-B613-6E8185A69962}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DBA84954-DDDB-4E47-B613-6E8185A69962}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DBA84954-DDDB-4E47-B613-6E8185A69962}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DBA84954-DDDB-4E47-B613-6E8185A69962}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB2161A4-B282-4E42-8FF7-29E0F65CDA4A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB2161A4-B282-4E42-8FF7-29E0F65CDA4A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB2161A4-B282-4E42-8FF7-29E0F65CDA4A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB2161A4-B282-4E42-8FF7-29E0F65CDA4A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3334FF2E-BB59-48AD-B523-477FE89CE2AB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3334FF2E-BB59-48AD-B523-477FE89CE2AB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3334FF2E-BB59-48AD-B523-477FE89CE2AB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3334FF2E-BB59-48AD-B523-477FE89CE2AB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B6F36E43-E70F-4338-B2AE-E3CF6BE9DB84}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B6F36E43-E70F-4338-B2AE-E3CF6BE9DB84}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B6F36E43-E70F-4338-B2AE-E3CF6BE9DB84}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B6F36E43-E70F-4338-B2AE-E3CF6BE9DB84}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A91FAD3D-C8B2-4901-A6F1-C1D017E8CFF7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A91FAD3D-C8B2-4901-A6F1-C1D017E8CFF7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A91FAD3D-C8B2-4901-A6F1-C1D017E8CFF7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A91FAD3D-C8B2-4901-A6F1-C1D017E8CFF7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal

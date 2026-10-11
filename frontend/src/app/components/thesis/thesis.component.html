@@ -1,0 +1,188 @@
+<div class="thesis-page">
+  <!-- Header -->
+  <div class="thesis-header glass-panel">
+    <div class="header-left">
+      <h2>Investment Thesis & Memory Hub</h2>
+      <p class="subtitle">Document why you own or watch an asset and track reality vs your original assumptions</p>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-secondary btn-sm" (click)="askCopilotRegardingThesis()">
+        ✦ Ask Gemini: "Has anything changed?"
+      </button>
+      <button class="btn btn-primary btn-sm" (click)="openCreateThesis()">
+        + New Thesis
+      </button>
+    </div>
+  </div>
+
+  <div class="thesis-layout">
+    <!-- Left: Thesis Selector Sidebar -->
+    <div class="thesis-sidebar glass-panel">
+      <div class="sidebar-header">
+        <h4>Documented Theses ({{ theses.length }})</h4>
+      </div>
+      <div class="thesis-list">
+        <div *ngFor="let t of theses" 
+             class="thesis-item-card" 
+             [class.active]="t.symbol === selectedSymbol"
+             (click)="runAlignmentAnalysis(t.symbol)">
+          <div class="item-top">
+            <span class="ticker-symbol">{{ t.symbol }}</span>
+            <span class="horizon-badge">{{ t.timeHorizon }}</span>
+          </div>
+          <p class="thesis-title-text">{{ t.title }}</p>
+          <div class="item-date">Updated: {{ t.updatedAt | date:'mediumDate' }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Detailed Thesis and Live Alignment Analysis -->
+    <div class="thesis-main">
+      <!-- Active Thesis Card -->
+      <div *ngIf="activeThesis" class="glass-panel main-thesis-card">
+        <div class="thesis-card-header">
+          <div>
+            <h3>{{ activeThesis.title }}</h3>
+            <div class="thesis-meta-chips">
+              <span class="badge badge-tool">Symbol: {{ activeThesis.symbol }}</span>
+              <span class="badge badge-guardrail">Horizon: {{ activeThesis.timeHorizon }}</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" (click)="runAlignmentAnalysis(activeThesis.symbol)">
+            ⟳ Re-evaluate Alignment
+          </button>
+        </div>
+
+        <div class="thesis-box">
+          <label>Your Stored Thesis:</label>
+          <blockquote class="stored-thesis-quote">
+            "{{ activeThesis.thesis }}"
+          </blockquote>
+        </div>
+
+        <div class="notes-grid" *ngIf="activeThesis.keyRisks || activeThesis.watchPoints">
+          <div *ngIf="activeThesis.keyRisks" class="note-box risk-box glass-panel">
+            <span class="note-label">Identified Key Risks:</span>
+            <p>{{ activeThesis.keyRisks }}</p>
+          </div>
+          <div *ngIf="activeThesis.watchPoints" class="note-box watch-box glass-panel">
+            <span class="note-label">Things You Are Watching:</span>
+            <p>{{ activeThesis.watchPoints }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live RAG Thesis Alignment Analysis Report -->
+      <div *ngIf="alignmentReport" class="glass-panel alignment-report-card">
+        <div class="report-header">
+          <div class="report-badge-col">
+            <span class="gemini-sparkle">✦</span>
+            <h4>Gemini Hybrid RAG Alignment Analysis</h4>
+          </div>
+          <div class="assessment-badge" [ngClass]="{
+            'badge-intact': alignmentReport.overallAssessment.includes('Intact'),
+            'badge-watch': alignmentReport.overallAssessment.includes('Watch') || alignmentReport.overallAssessment.includes('Review')
+          }">
+            Status: {{ alignmentReport.overallAssessment }}
+          </div>
+        </div>
+
+        <p class="report-subtext">
+          Comparing your original thesis against live market quote (₹{{ alignmentReport.currentPrice | number:'1.2-2' }}) and the latest corporate filings retrieved via pgvector / RAG.
+        </p>
+
+        <!-- Confirmatory Evidence -->
+        <div class="alignment-section">
+          <h5 class="section-title text-profit">✅ Confirmatory Developments</h5>
+          <ul class="evidence-list">
+            <li *ngFor="let c of alignmentReport.confirmatoryFactors">{{ c }}</li>
+          </ul>
+        </div>
+
+        <!-- Risks / Contradictory Evidence -->
+        <div class="alignment-section">
+          <h5 class="section-title text-loss">⚠️ Contradictory / New Risks</h5>
+          <ul class="evidence-list">
+            <li *ngFor="let r of alignmentReport.contradictoryOrRiskFactors">{{ r }}</li>
+          </ul>
+        </div>
+
+        <!-- Developments Since Thesis -->
+        <div class="alignment-section">
+          <h5 class="section-title text-info">📰 Corporate Developments Since Thesis Date</h5>
+          <ul class="evidence-list">
+            <li *ngFor="let d of alignmentReport.developmentsSinceThesis">{{ d }}</li>
+          </ul>
+        </div>
+
+        <!-- Questions to Investigate -->
+        <div class="alignment-section">
+          <h5 class="section-title text-warning">🔍 Questions Worth Investigating</h5>
+          <ul class="evidence-list">
+            <li *ngFor="let q of alignmentReport.keyQuestionsToInvestigate">{{ q }}</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Empty State if no thesis -->
+      <div *ngIf="theses.length === 0" class="glass-panel empty-state">
+        <p class="empty-icon">🎯</p>
+        <h4>No Investment Theses Recorded Yet</h4>
+        <p class="empty-subtext">Click "+ New Thesis" to document why you bought or are watching a stock/ETF.</p>
+        <button class="btn btn-primary" (click)="openCreateThesis()">+ Record First Thesis</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Create Thesis -->
+  <div *ngIf="showNewModal" class="modal-overlay">
+    <div class="modal-panel glass-panel">
+      <div class="modal-header">
+        <h3>Record Investment Thesis</h3>
+        <button class="close-btn" (click)="showNewModal = false">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Ticker Symbol</label>
+          <input type="text" [(ngModel)]="newSymbol" class="input-control" placeholder="e.g. INFY, TCS, MON100, RELIANCE" />
+        </div>
+
+        <div class="form-group">
+          <label>Thesis Headline / Title</label>
+          <input type="text" [(ngModel)]="newTitle" class="input-control" placeholder="e.g. Generative AI Enterprise Deal Leadership" />
+        </div>
+
+        <div class="form-group">
+          <label>Time Horizon</label>
+          <select [(ngModel)]="newHorizon" class="input-control">
+            <option value="Short-Term (< 1 Year)">Short-Term (< 1 Year)</option>
+            <option value="Medium-Term (1-3 Years)">Medium-Term (1-3 Years)</option>
+            <option value="Long-Term (3-5 Years)">Long-Term (3-5 Years)</option>
+            <option value="Multi-Year Secular (5+ Years)">Multi-Year Secular (5+ Years)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label>Core Investment Thesis (Rationale)</label>
+          <textarea [(ngModel)]="newThesisText" class="input-control" rows="3" placeholder="Why are you allocating capital? What is the edge or fundamental catalyst?"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Key Risks Identified</label>
+          <input type="text" [(ngModel)]="newRisks" class="input-control" placeholder="e.g. Discretionary IT capex delay, margin compression" />
+        </div>
+
+        <div class="form-group">
+          <label>Things You Are Monitoring</label>
+          <input type="text" [(ngModel)]="newWatchPoints" class="input-control" placeholder="e.g. Quarterly TCV deal flow, attrition rate" />
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showNewModal = false">Cancel</button>
+        <button class="btn btn-primary" (click)="submitNewThesis()" [disabled]="!newSymbol.trim() || !newThesisText.trim()">
+          Save Thesis Memory
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

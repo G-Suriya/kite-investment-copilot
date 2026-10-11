@@ -1,0 +1,63 @@
+<div class="audit-page">
+  <div class="audit-header glass-panel">
+    <div>
+      <h2>AI Safety & Tool Execution Audit Trail</h2>
+      <p class="subtitle">Complete audit logs of every Gemini tool call, arguments, execution duration, and guardrail validations</p>
+    </div>
+    <div>
+      <button class="btn btn-secondary btn-sm" (click)="loadLogs()">
+        ⟳ Refresh Logs
+      </button>
+    </div>
+  </div>
+
+  <div class="glass-panel audit-table-card">
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Time</th>
+            <th>User Prompt</th>
+            <th>Tool Invoked</th>
+            <th>Arguments</th>
+            <th>Result Payload</th>
+            <th>Status</th>
+            <th>Duration</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let log of logs">
+            <td class="font-mono text-muted text-nowrap">{{ log.timestamp | date:'HH:mm:ss' }}</td>
+            <td class="prompt-cell">
+              <span class="prompt-text font-bold">"{{ log.prompt }}"</span>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="log.tool?.startsWith('BLOCKED') ? 'badge-guardrail' : 'badge-tool'">
+                {{ log.tool || 'none' }}
+              </span>
+            </td>
+            <td class="code-cell">
+              <code>{{ log.arguments || '—' }}</code>
+            </td>
+            <td class="result-cell">
+              <div class="result-scroll">
+                <code>{{ log.result || 'Success' }}</code>
+              </div>
+            </td>
+            <td>
+              <span class="badge" [ngClass]="log.success ? 'bg-profit' : 'bg-loss'">
+                {{ log.success ? 'SUCCESS' : 'BLOCKED' }}
+              </span>
+            </td>
+            <td class="font-mono text-muted text-nowrap">{{ log.executionMs }}ms</td>
+          </tr>
+          <tr *ngIf="logs.length === 0">
+            <td colspan="7" class="text-center py-6 text-muted">
+              No tool calls logged yet. Ask Gemini a question in the Chat tab to see real-time tool audits appear!
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

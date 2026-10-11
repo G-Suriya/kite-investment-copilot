@@ -1,0 +1,163 @@
+<div class="app-layout">
+  <!-- Left Sidebar Navigation -->
+  <aside class="sidebar">
+    <!-- Brand Logo -->
+    <div class="sidebar-brand">
+      <div class="brand-icon-box">
+        <span class="brand-sparkle">✦</span>
+      </div>
+      <div class="brand-text">
+        <span class="brand-main">KITE COPILOT</span>
+        <span class="brand-sub">AI Institutional Hub</span>
+      </div>
+    </div>
+
+    <!-- Navigation Links -->
+    <nav class="sidebar-nav">
+      <a routerLink="/chat" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+        </span>
+        <span class="nav-text">Copilot Chat</span>
+        <span class="nav-badge-glow">AI</span>
+      </a>
+
+      <a routerLink="/dashboard" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"></rect><rect x="14" y="3" width="7" height="5"></rect><rect x="14" y="12" width="7" height="9"></rect><rect x="3" y="16" width="7" height="5"></rect></svg>
+        </span>
+        <span class="nav-text">Dashboard</span>
+      </a>
+
+      <a routerLink="/ipos-futures" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+        </span>
+        <span class="nav-text">IPOs & Derivatives</span>
+        <span class="nav-badge">GMP</span>
+      </a>
+
+      <a routerLink="/watchlists" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+        </span>
+        <span class="nav-text">Watchlists</span>
+      </a>
+
+      <a routerLink="/portfolio" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        </span>
+        <span class="nav-text">Kite Portfolio</span>
+      </a>
+
+      <a routerLink="/research" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        </span>
+        <span class="nav-text">Asset Research</span>
+      </a>
+
+      <a routerLink="/thesis" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+        </span>
+        <span class="nav-text">Investment Thesis</span>
+      </a>
+
+      <a routerLink="/rag" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+        </span>
+        <span class="nav-text">Filings & RAG</span>
+      </a>
+
+      <a routerLink="/audit-log" routerLinkActive="active" class="nav-link">
+        <span class="nav-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+        </span>
+        <span class="nav-text">Safety Audit Log</span>
+      </a>
+    </nav>
+
+    <!-- Sidebar Bottom Status Widget -->
+    <div class="sidebar-footer">
+      <div class="kite-status-card" (click)="toggleDemo()" title="Live Telemetry Feed (Auto-updating)">
+        <div class="status-dot-row">
+          <span class="status-dot live-dot"></span>
+          <span class="status-text">Live NSE/BSE Feed</span>
+        </div>
+        <div class="status-hint">Real-Time Price Sync Active</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Application Body -->
+  <div class="main-wrapper">
+    <!-- Top Header Bar with Live Market Ticker -->
+    <header class="top-header">
+      <!-- Live Real-Time Market Ticker Ribbon -->
+      <div class="market-ticker-ribbon">
+        <div class="ticker-chip">
+          <span class="t-name">NIFTY 50</span>
+          <span class="t-val">24,982.50</span>
+          <span class="t-chg text-profit">▲ +0.50%</span>
+        </div>
+        <div class="ticker-divider"></div>
+        <div class="ticker-chip">
+          <span class="t-name">SENSEX</span>
+          <span class="t-val">81,634.80</span>
+          <span class="t-chg text-profit">▲ +0.47%</span>
+        </div>
+        <div class="ticker-divider"></div>
+        <div class="ticker-chip">
+          <span class="t-name">BANK NIFTY</span>
+          <span class="t-val">51,240.10</span>
+          <span class="t-chg text-profit">▲ +0.41%</span>
+        </div>
+        <div class="ticker-divider"></div>
+        <div class="ticker-chip">
+          <span class="t-name">INDIA VIX</span>
+          <span class="t-val">13.42</span>
+          <span class="t-chg text-profit">▼ -3.2%</span>
+        </div>
+        <div class="ticker-divider"></div>
+        <div class="ticker-chip">
+          <span class="t-name">DII INFLOW</span>
+          <span class="t-val text-profit">+₹3,120 Cr</span>
+        </div>
+      </div>
+
+      <div class="header-right-tools">
+        <!-- Margin Pill -->
+        <div class="margin-badge">
+          <span class="margin-label">Margin:</span>
+          <span class="margin-val font-mono">₹{{ funds.availableMargin | number:'1.2-2' }}</span>
+        </div>
+
+        <!-- Live Status Pill -->
+        <button class="btn btn-secondary btn-sm" (click)="toggleDemo()" title="Click to refresh market prices">
+          <span class="live-dot" style="display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #10b981; margin-right: 5px;"></span>
+          ↻ Live Quotes
+        </button>
+
+        <!-- Ask Gemini Button -->
+        <button class="btn btn-primary btn-sm" (click)="quickChat()">
+          <span>✦ Copilot</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Router View Area -->
+    <main class="content-area">
+      <router-outlet></router-outlet>
+    </main>
+
+    <!-- Safety Disclaimer Footer -->
+    <footer class="app-footer">
+      <p>
+        Kite Investment Copilot • Institutional Research Terminal • Autonomous orders disabled for personal safety
+      </p>
+    </footer>
+  </div>
+</div>

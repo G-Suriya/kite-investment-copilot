@@ -1,0 +1,330 @@
+.thesis-page {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.thesis-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 18px 22px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.thesis-header h2 {
+  font-size: 1.25rem;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 700;
+}
+
+.header-right {
+  display: flex;
+  gap: 10px;
+}
+
+.thesis-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+}
+
+@media (max-width: 900px) {
+  .thesis-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+.thesis-sidebar {
+  padding: 0;
+  overflow: hidden;
+  height: fit-content;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.sidebar-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-secondary);
+}
+
+.sidebar-header h4 {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 700;
+}
+
+.thesis-list {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 8px;
+}
+
+.thesis-item-card {
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.thesis-item-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-hover);
+}
+
+.thesis-item-card.active {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: var(--primary-glow);
+  box-shadow: var(--shadow-glow-blue);
+}
+
+.item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.horizon-badge {
+  font-size: 0.675rem;
+  color: var(--primary-glow);
+  background: rgba(37, 99, 235, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-weight: 600;
+}
+
+.thesis-title-text {
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  margin: 0 0 6px 0;
+  line-height: 1.4;
+}
+
+.item-date {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.thesis-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.main-thesis-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.thesis-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.thesis-card-header h3 {
+  font-size: 1.35rem;
+  color: var(--text-primary);
+  margin: 0 0 6px 0;
+  font-weight: 700;
+}
+
+.thesis-meta-chips {
+  display: flex;
+  gap: 8px;
+}
+
+.thesis-box label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  font-weight: 600;
+  display: block;
+  margin-bottom: 6px;
+}
+
+.stored-thesis-quote {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  border-left: 3px solid var(--primary-glow);
+  padding-left: 14px;
+  background: rgba(37, 99, 235, 0.08);
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  padding: 14px 18px;
+  font-style: italic;
+  border-top: 1px solid var(--border-subtle);
+  border-right: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.notes-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.note-box {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.note-label {
+  font-size: 0.725rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.risk-box .note-label {
+  color: var(--loss-color);
+}
+
+.watch-box .note-label {
+  color: var(--warning-color);
+}
+
+.note-box p {
+  font-size: 0.825rem;
+  color: var(--text-secondary);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.alignment-report-card {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+}
+
+.report-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.report-badge-col {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.report-badge-col h4 {
+  font-size: 1.05rem;
+  color: var(--text-primary);
+  margin: 0;
+  font-weight: 700;
+}
+
+.report-badge-col .gemini-sparkle {
+  color: var(--ai-accent);
+}
+
+.assessment-badge {
+  font-size: 0.775rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+}
+
+.badge-intact {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  color: var(--profit-color);
+}
+
+.badge-watch {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(245, 158, 11, 0.4);
+  color: var(--warning-color);
+}
+
+.report-subtext {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.alignment-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.evidence-list {
+  padding-left: 20px;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+.evidence-list li {
+  margin-bottom: 4px;
+}
+
+.empty-state {
+  padding: 60px 20px;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+.empty-state h4 {
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.empty-subtext {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}

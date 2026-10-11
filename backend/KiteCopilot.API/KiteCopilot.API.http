@@ -1,0 +1,6 @@
+@KiteCopilot.API_HostAddress = http://localhost:5051
+
+GET {{KiteCopilot.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,337 @@
+<div class="research-page">
+  <!-- Header -->
+  <div class="research-header glass-panel">
+    <div>
+      <h2>Institutional Research & Asset Intelligence</h2>
+      <p class="subtitle">Multi-asset analytics: Indian Equities, ETFs, IPOs, and Side-by-Side Comparison</p>
+    </div>
+    <div class="nav-pills">
+      <button class="nav-pill-btn" [class.active]="activeView === 'stock'" (click)="activeView = 'stock'">
+        🏢 Stock Analysis
+      </button>
+      <button class="nav-pill-btn" [class.active]="activeView === 'etf'" (click)="activeView = 'etf'">
+        🌐 ETF Factsheets
+      </button>
+      <button class="nav-pill-btn" [class.active]="activeView === 'ipo'" (click)="activeView = 'ipo'">
+        🚀 IPO Hub
+      </button>
+      <button class="nav-pill-btn" [class.active]="activeView === 'compare'" (click)="activeView = 'compare'">
+        ⚖️ Compare Assets
+      </button>
+    </div>
+  </div>
+
+  <!-- VIEW 1: Stock Analysis -->
+  <div *ngIf="activeView === 'stock'" class="research-content">
+    <!-- Symbol Selector Bar -->
+    <div class="symbol-selector-bar">
+      <span class="selector-label">Select Company:</span>
+      <button *ngFor="let s of stockList" 
+              class="symbol-btn" 
+              [class.active]="s === selectedStockSymbol"
+              (click)="loadStock(s)">
+        {{ s }}
+      </button>
+    </div>
+
+    <!-- Stock Analysis Card -->
+    <div *ngIf="stockData" class="glass-panel research-card">
+      <div class="card-top-bar">
+        <div>
+          <h3>{{ stockData.companyName }} <span class="mono-badge">NSE: {{ stockData.symbol }}</span></h3>
+          <p class="sector-tag">{{ stockData.quote.sector || 'Equities' }}</p>
+        </div>
+        <div class="price-box">
+          <div class="price-val font-mono">₹{{ stockData.quote.lastPrice | number:'1.2-2' }}</div>
+          <div [ngClass]="stockData.quote.changePercent >= 0 ? 'text-profit' : 'text-loss'" class="font-bold">
+            {{ stockData.quote.changePercent >= 0 ? '+' : '' }}{{ stockData.quote.changePercent | number:'1.2-2' }}% Today
+          </div>
+        </div>
+      </div>
+
+      <!-- Current Kite Position Alert if owned -->
+      <div *ngIf="stockData.currentHolding" class="holding-notice glass-panel">
+        <span class="notice-icon">💼</span>
+        <span>You own <strong>{{ stockData.currentHolding.quantity }} shares</strong> in Kite. Current P&L: 
+          <strong [ngClass]="stockData.currentHolding.pnL >= 0 ? 'text-profit' : 'text-loss'">
+            {{ stockData.currentHolding.pnL >= 0 ? '+' : '' }}₹{{ stockData.currentHolding.pnL | number:'1.2-2' }} ({{ stockData.currentHolding.pnLPercent | number:'1.2-2' }}%)
+          </strong>
+        </span>
+      </div>
+
+      <!-- Financial Metrics Grid -->
+      <div class="ratios-grid">
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">P/E Ratio</span>
+          <span class="ratio-value font-mono">{{ stockData.quote.peRatio ? (stockData.quote.peRatio | number:'1.1-1') + 'x' : 'N/A' }}</span>
+        </div>
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Market Capitalization</span>
+          <span class="ratio-value font-mono">₹{{ stockData.quote.marketCapCrores | number:'1.0-0' }} Cr</span>
+        </div>
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">52-Week Range</span>
+          <span class="ratio-value font-mono">₹{{ stockData.quote.fiftyTwoWeekLow | number:'1.0-0' }} - ₹{{ stockData.quote.fiftyTwoWeekHigh | number:'1.0-0' }}</span>
+        </div>
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Dividend Yield</span>
+          <span class="ratio-value font-mono">{{ stockData.quote.dividendYield ? (stockData.quote.dividendYield | number:'1.2-2') + '%' : 'N/A' }}</span>
+        </div>
+      </div>
+
+      <!-- Business Summary -->
+      <div class="section-block">
+        <h4>Business Model & Core Advantage</h4>
+        <p class="section-text">{{ stockData.businessSummary }}</p>
+      </div>
+
+      <!-- Key Operating Highlights -->
+      <div class="section-block">
+        <h4>Financial & Operational Highlights</h4>
+        <div class="highlights-list">
+          <div *ngFor="let item of stockData.financialHighlights | keyvalue" class="highlight-row">
+            <span class="highlight-k">{{ item.key }}</span>
+            <span class="highlight-v font-mono">{{ item.value }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RAG Filing Excerpts -->
+      <div *ngIf="stockData.keyFilingExcerpts && stockData.keyFilingExcerpts.length > 0" class="section-block">
+        <h4>📄 Retrieved Filing Excerpt (RAG Semantic Grounding)</h4>
+        <div *ngFor="let f of stockData.keyFilingExcerpts" class="filing-box glass-panel">
+          <div class="filing-meta">{{ f.title }} ({{ f.quarter }} {{ f.year }}) — Source: {{ f.source }}</div>
+          <p class="filing-content">"{{ f.content }}"</p>
+        </div>
+      </div>
+
+      <!-- Risks -->
+      <div class="section-block">
+        <h4>⚠️ Identified Investment Risks / Monitor Points</h4>
+        <ul class="risk-bullets">
+          <li *ngFor="let r of stockData.risksAndWatchlistPoints">{{ r }}</li>
+        </ul>
+      </div>
+
+      <div class="card-footer-action">
+        <button class="btn btn-primary" (click)="askCopilot('Analyse ' + stockData.symbol + ' from my watchlist')">
+          ✦ Ask Gemini In-Depth Analysis
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: ETF Factsheets -->
+  <div *ngIf="activeView === 'etf'" class="research-content">
+    <div class="symbol-selector-bar">
+      <span class="selector-label">Select ETF:</span>
+      <button *ngFor="let e of etfList" 
+              class="symbol-btn" 
+              [class.active]="e === selectedEtfSymbol"
+              (click)="loadEtf(e)">
+        {{ e }}
+      </button>
+    </div>
+
+    <div *ngIf="etfData" class="glass-panel research-card">
+      <div class="card-top-bar">
+        <div>
+          <h3>{{ etfData.name }} <span class="mono-badge">NSE: {{ etfData.symbol }}</span></h3>
+          <p class="sector-tag">Underlying Index: {{ etfData.underlyingIndex }}</p>
+        </div>
+        <div class="price-box">
+          <div class="price-val font-mono">₹{{ etfData.quote.lastPrice | number:'1.2-2' }}</div>
+          <div [ngClass]="etfData.quote.changePercent >= 0 ? 'text-profit' : 'text-loss'" class="font-bold">
+            {{ etfData.quote.changePercent >= 0 ? '+' : '' }}{{ etfData.quote.changePercent | number:'1.2-2' }}%
+          </div>
+        </div>
+      </div>
+
+      <div class="ratios-grid">
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Total Expense Ratio (TER)</span>
+          <span class="ratio-value font-mono text-profit">{{ etfData.expenseRatio }}%</span>
+        </div>
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Tracking Error (1-Yr)</span>
+          <span class="ratio-value font-mono">{{ etfData.trackingError }}%</span>
+        </div>
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Assets Under Management</span>
+          <span class="ratio-value font-mono">₹{{ etfData.aumCrores | number:'1.0-0' }} Cr</span>
+        </div>
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Intraday Liquidity</span>
+          <span class="ratio-value font-mono text-info">High (Active NSE)</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h4>Top Constituents</h4>
+        <div class="tags-cluster">
+          <span *ngFor="let h of etfData.topHoldings" class="holding-tag">{{ h }}</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h4>Sector Breakdown</h4>
+        <p class="section-text">{{ etfData.sectorDistribution }}</p>
+      </div>
+
+      <div class="section-block">
+        <h4>Investment Thesis Suitability</h4>
+        <p class="section-text">{{ etfData.thesisSuitability }}</p>
+      </div>
+
+      <div class="section-block">
+        <h4>Watch Points</h4>
+        <ul class="risk-bullets">
+          <li *ngFor="let w of etfData.watchPoints">{{ w }}</li>
+        </ul>
+      </div>
+
+      <div class="card-footer-action">
+        <button class="btn btn-primary" (click)="askCopilot('Explain ' + etfData.symbol + ' ETF and compare with benchmark')">
+          ✦ Ask Gemini to Evaluate ETF
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: IPO Hub -->
+  <div *ngIf="activeView === 'ipo'" class="research-content">
+    <div class="symbol-selector-bar">
+      <span class="selector-label">Select IPO:</span>
+      <button *ngFor="let ipo of ipoList" 
+              class="symbol-btn" 
+              [class.active]="ipo === selectedIpoSymbol"
+              (click)="loadIpo(ipo)">
+        {{ ipo }}
+      </button>
+    </div>
+
+    <div *ngIf="ipoData" class="glass-panel research-card">
+      <div class="card-top-bar">
+        <div>
+          <h3>{{ ipoData.companyName }} <span class="mono-badge">NSE: {{ ipoData.symbol }}</span></h3>
+          <p class="sector-tag">Status: <span class="badge badge-tool">{{ ipoData.status }}</span></p>
+        </div>
+        <div class="price-box">
+          <span class="price-val font-mono">{{ ipoData.priceBand }}</span>
+          <span class="sector-tag">Issue Price Band</span>
+        </div>
+      </div>
+
+      <div class="ratios-grid">
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Total Issue Size</span>
+          <span class="ratio-value font-mono">₹{{ ipoData.issueSizeCrores | number:'1.0-0' }} Cr</span>
+        </div>
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Fresh Capital vs OFS</span>
+          <span class="ratio-value font-mono">Fresh: ₹{{ ipoData.freshIssueCrores | number:'1.0-0' }} Cr</span>
+        </div>
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Valuation Multiple</span>
+          <span class="ratio-value font-mono">{{ ipoData.postIssuePe }}</span>
+        </div>
+        <div class="ratio-item glass-panel">
+          <span class="ratio-label">Promoter Holding</span>
+          <span class="ratio-value font-mono">{{ ipoData.promoterHoldingPrePost }}</span>
+        </div>
+      </div>
+
+      <div class="section-block">
+        <h4>🌟 Competitive Strengths (from SEBI RHP)</h4>
+        <ul class="strength-bullets">
+          <li *ngFor="let s of ipoData.strengths">{{ s }}</li>
+        </ul>
+      </div>
+
+      <div class="section-block">
+        <h4>⚠️ Red Herring Key Risk Factors</h4>
+        <ul class="risk-bullets">
+          <li *ngFor="let r of ipoData.keyRisks">{{ r }}</li>
+        </ul>
+      </div>
+
+      <div class="card-footer-action">
+        <button class="btn btn-primary" (click)="askCopilot('Analyse ' + ipoData.symbol + ' IPO details and valuation')">
+          ✦ Ask Gemini to Evaluate IPO
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: Compare Assets -->
+  <div *ngIf="activeView === 'compare'" class="research-content">
+    <div class="compare-input-box glass-panel">
+      <div class="compare-input-row">
+        <label>Tickers to Compare (Comma Separated):</label>
+        <div class="input-with-btn">
+          <input type="text" [(ngModel)]="compareInput" class="input-control" placeholder="e.g. INFY, TCS, HDFCBANK, RELIANCE" />
+          <button class="btn btn-primary" (click)="runCompare()">Compare Assets</button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="comparedQuotes.length > 0" class="glass-panel research-card">
+      <div class="data-table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th *ngFor="let q of comparedQuotes">{{ q.symbol }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Company Name</td>
+              <td *ngFor="let q of comparedQuotes" class="font-bold">{{ q.companyName }}</td>
+            </tr>
+            <tr>
+              <td>Current Price (LTP)</td>
+              <td *ngFor="let q of comparedQuotes" class="font-mono font-bold">₹{{ q.lastPrice | number:'1.2-2' }}</td>
+            </tr>
+            <tr>
+              <td>Day Change (%)</td>
+              <td *ngFor="let q of comparedQuotes" [ngClass]="q.changePercent >= 0 ? 'text-profit' : 'text-loss'" class="font-bold">
+                {{ q.changePercent >= 0 ? '+' : '' }}{{ q.changePercent | number:'1.2-2' }}%
+              </td>
+            </tr>
+            <tr>
+              <td>P/E Ratio</td>
+              <td *ngFor="let q of comparedQuotes" class="font-mono">
+                {{ q.peRatio ? (q.peRatio | number:'1.1-1') + 'x' : 'N/A' }}
+              </td>
+            </tr>
+            <tr>
+              <td>52-Week Range</td>
+              <td *ngFor="let q of comparedQuotes" class="font-mono">
+                ₹{{ q.fiftyTwoWeekLow | number:'1.0-0' }} - ₹{{ q.fiftyTwoWeekHigh | number:'1.0-0' }}
+              </td>
+            </tr>
+            <tr>
+              <td>Market Cap (Cr)</td>
+              <td *ngFor="let q of comparedQuotes" class="font-mono">
+                {{ q.marketCapCrores ? '₹' + (q.marketCapCrores | number:'1.0-0') + ' Cr' : 'N/A' }}
+              </td>
+            </tr>
+            <tr>
+              <td>Sector</td>
+              <td *ngFor="let q of comparedQuotes">{{ q.sector || 'Equities' }}</td>
+            </tr>
+            <tr>
+              <td>Gemini Action</td>
+              <td *ngFor="let q of comparedQuotes">
+                <button class="btn btn-secondary btn-sm" (click)="askCopilot('Compare ' + q.symbol + ' against peers')">
+                  ✦ Deep Dive
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,151 @@
+<div class="rag-page">
+  <!-- Header -->
+  <div class="rag-header glass-panel">
+    <div>
+      <h2>Hybrid RAG Document Intelligence</h2>
+      <p class="subtitle">Managed document ingestion, chunking, and pgvector cosine semantic search</p>
+    </div>
+    <div>
+      <button class="btn btn-primary btn-sm" (click)="openUploadModal()">
+        + Ingest New Document
+      </button>
+    </div>
+  </div>
+
+  <!-- Semantic Vector Search Bar Card -->
+  <div class="search-card glass-panel">
+    <label class="search-label">🔍 Semantic Similarity Search (pgvector Embeddings):</label>
+    <div class="search-bar-row">
+      <input 
+        type="text" 
+        [(ngModel)]="searchQuery" 
+        (keyup.enter)="runSemanticSearch()" 
+        class="input-control" 
+        placeholder="Query filings: e.g. 'Operating margin guidance', 'Quick commerce dark stores', 'NIM trajectory'..." 
+      />
+      <button class="btn btn-primary" (click)="runSemanticSearch()" [disabled]="isSearching">
+        {{ isSearching ? 'Searching...' : 'Vector Search' }}
+      </button>
+    </div>
+    <div class="quick-queries">
+      <span class="query-hint">Try:</span>
+      <button class="hint-btn" (click)="searchQuery = 'Topaz generative AI deal pipeline and margins'; runSemanticSearch()">Infosys Topaz AI</button>
+      <button class="hint-btn" (click)="searchQuery = 'HDFC Bank Credit Deposit ratio normalization'; runSemanticSearch()">HDFC Bank CD Ratio</button>
+      <button class="hint-btn" (click)="searchQuery = 'Swiggy Instamart dark stores take rate'; runSemanticSearch()">Swiggy Instamart</button>
+      <button class="hint-btn" (click)="searchQuery = 'Nasdaq 100 tracking error and tech allocation'; runSemanticSearch()">MON100 Factsheet</button>
+    </div>
+  </div>
+
+  <!-- Search Results Grid -->
+  <div *ngIf="searchResults.length > 0" class="results-container">
+    <h3 class="results-heading">Semantic Vector Matches ({{ searchResults.length }})</h3>
+    <div class="chunks-grid">
+      <div *ngFor="let chunk of searchResults" class="chunk-card glass-panel">
+        <div class="chunk-top">
+          <span class="ticker-symbol">{{ chunk.symbol }}</span>
+          <span class="badge badge-tool">{{ (chunk.similarityScore * 100) | number:'1.1-1' }}% Similarity</span>
+        </div>
+        <h4 class="chunk-title">{{ chunk.title }}</h4>
+        <div class="chunk-meta">
+          <span>Type: {{ chunk.documentType }}</span> |
+          <span>Period: {{ chunk.quarter }} {{ chunk.year }}</span> |
+          <span>Source: {{ chunk.source }}</span>
+        </div>
+        <p class="chunk-text">"{{ chunk.content }}"</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ingested Documents Repository Table -->
+  <div class="glass-panel docs-table-card">
+    <div class="panel-header">
+      <div>
+        <h3>Indexed Research Repository ({{ documents.length }} Documents)</h3>
+        <p class="subtitle">Clean, chunked, and embedded documents ready for Gemini context synthesis</p>
+      </div>
+    </div>
+
+    <div class="data-table-wrapper">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            <th>Document Title</th>
+            <th>Type</th>
+            <th>Period</th>
+            <th>Source</th>
+            <th>Chunks</th>
+            <th>Published</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let doc of documents">
+            <td><span class="ticker-symbol">{{ doc.symbol }}</span></td>
+            <td class="font-bold">{{ doc.title }}</td>
+            <td><span class="badge badge-tool">{{ doc.documentType }}</span></td>
+            <td>{{ doc.quarter }} {{ doc.financialYear }}</td>
+            <td class="text-muted">{{ doc.source }}</td>
+            <td class="font-mono">Active Chunks</td>
+            <td class="text-muted">{{ doc.publishedDate | date:'mediumDate' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Modal: Upload Document -->
+  <div *ngIf="showUploadModal" class="modal-overlay">
+    <div class="modal-panel glass-panel">
+      <div class="modal-header">
+        <h3>Ingest Corporate Document</h3>
+        <button class="close-btn" (click)="showUploadModal = false">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Ticker Symbol</label>
+            <input type="text" [(ngModel)]="uploadSymbol" class="input-control" placeholder="e.g. INFY, TCS, RELIANCE" />
+          </div>
+          <div class="form-group">
+            <label>Document Type</label>
+            <select [(ngModel)]="uploadDocType" class="input-control">
+              <option value="QuarterlyResult">Quarterly Result</option>
+              <option value="AnnualReport">Annual Report</option>
+              <option value="InvestorPresentation">Investor Presentation</option>
+              <option value="ExchangeFiling">Exchange Filing</option>
+              <option value="DRHP_RHP">DRHP / RHP (IPO)</option>
+              <option value="Factsheet">ETF Factsheet</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Document Title</label>
+          <input type="text" [(ngModel)]="uploadTitle" class="input-control" placeholder="e.g. Q2 FY26 Investor Deck & Management Call" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quarter</label>
+            <input type="text" [(ngModel)]="uploadQuarter" class="input-control" placeholder="Q1 / Q2 / Q3 / Q4" />
+          </div>
+          <div class="form-group">
+            <label>Fiscal Year</label>
+            <input type="number" [(ngModel)]="uploadYear" class="input-control" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Document Content (Extracted Text / Excerpt)</label>
+          <textarea [(ngModel)]="uploadContent" class="input-control" rows="5" placeholder="Paste report text, management commentary, or financial takeaways here..."></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="showUploadModal = false">Cancel</button>
+        <button class="btn btn-primary" (click)="submitUpload()" [disabled]="!uploadSymbol.trim() || !uploadTitle.trim() || !uploadContent.trim()">
+          Chunk & Embed Document
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

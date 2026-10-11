@@ -1,0 +1,155 @@
+<div class="chat-wrapper">
+  <!-- Header with Copilot Branding & Status -->
+  <div class="chat-header glass-panel">
+    <div class="chat-header-title">
+      <div class="gemini-avatar">
+        <span class="gemini-sparkle">✦</span>
+      </div>
+      <div>
+        <h2>Gemini Copilot Intelligence</h2>
+        <p class="subtitle">Adaptive Indian Market Research • Beginner ELI5 to Institutional Quantitative Pro</p>
+      </div>
+    </div>
+    <div class="chat-header-status">
+      <span class="status-indicator">
+        <span class="pulse-dot"></span>
+        Neural Engine Active • Zero Order Execution
+      </span>
+    </div>
+  </div>
+
+  <!-- Experience Mode Selector Bar -->
+  <div class="experience-toolbar glass-panel">
+    <div class="exp-left">
+      <span class="exp-title">Audience Depth:</span>
+      <div class="exp-btn-group">
+        <button class="exp-btn" [class.active]="experienceMode === 'beginner'" (click)="setExperienceMode('beginner')">
+          🌱 Beginner (ELI5)
+        </button>
+        <button class="exp-btn" [class.active]="experienceMode === 'pro'" (click)="setExperienceMode('pro')">
+          ⚡ Pro Trader & Quant
+        </button>
+        <button class="exp-btn" [class.active]="experienceMode === 'all'" (click)="setExperienceMode('all')">
+          ⚖️ Adaptive Dual-Mode
+        </button>
+      </div>
+    </div>
+    <div class="exp-hint">
+      <span *ngIf="experienceMode === 'beginner'">💡 Plain language, everyday analogies, risk safety rules (no jargon)</span>
+      <span *ngIf="experienceMode === 'pro'">📊 Technical levels (EMA/SMA, RSI, Pivots), F&O Open Interest, ROCE/WACC</span>
+      <span *ngIf="experienceMode === 'all'">🎯 Automatic dual-layer: Newbie summary at top + Institutional deep dive below</span>
+    </div>
+  </div>
+
+  <!-- Quick Trigger Category Filter Chips -->
+  <div class="quick-category-bar">
+    <button *ngFor="let qf of currentFilters" (click)="sendMessage(qf.prompt)" class="category-chip">
+      {{ qf.label }}
+    </button>
+  </div>
+
+  <!-- Messages Scroll Area -->
+  <div class="chat-messages-container" #scrollContainer>
+    <div *ngFor="let msg of messages" class="chat-message-row" [ngClass]="{'user-row': msg.role === 'user', 'assistant-row': msg.role === 'assistant'}">
+      
+      <!-- Avatar -->
+      <div class="message-avatar">
+        <span *ngIf="msg.role === 'user'">👤</span>
+        <span *ngIf="msg.role === 'assistant'" class="gemini-sparkle">✦</span>
+      </div>
+
+      <!-- Bubble -->
+      <div class="message-bubble" [ngClass]="{'user-bubble': msg.role === 'user', 'assistant-bubble': msg.role === 'assistant'}">
+        
+        <!-- Guardrail Alert if Triggered -->
+        <div *ngIf="msg.guardrailTriggered" class="guardrail-alert">
+          <div class="guardrail-header">
+            <span>🛡️</span>
+            <strong>INVESTMENT SAFETY GUARDRAIL</strong>
+          </div>
+          <p class="guardrail-text">{{ msg.guardrailMessage }}</p>
+        </div>
+
+        <!-- Tool Calls Executed Badge Row -->
+        <div *ngIf="msg.toolCalls && msg.toolCalls.length > 0" class="tool-calls-container">
+          <div class="tool-badges">
+            <div *ngFor="let tool of msg.toolCalls" class="tool-pill" [class.tool-success]="tool.success">
+              <span class="tool-name">⚡ {{ tool.toolName }}()</span>
+              <span class="tool-time">{{ tool.executionTimeMs }}ms</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Optional In-Bubble View Toggle for Dual-Mode Messages -->
+        <div *ngIf="msg.role === 'assistant' && (msg.beginnerSummary || msg.proAnalysis)" class="bubble-mode-toggle">
+          <button class="mode-toggle-btn" [class.active]="msg.activeView === 'beginner'" (click)="setMessageView(msg, 'beginner')">
+            🌱 Simple (ELI5)
+          </button>
+          <button class="mode-toggle-btn" [class.active]="msg.activeView === 'pro'" (click)="setMessageView(msg, 'pro')">
+            ⚡ Pro Breakdown
+          </button>
+          <button class="mode-toggle-btn" [class.active]="msg.activeView === 'all'" (click)="setMessageView(msg, 'all')">
+            📑 Complete Dual View
+          </button>
+        </div>
+
+        <!-- Message Body -->
+        <div class="markdown-body" [innerHTML]="renderMarkdown(getDisplayContent(msg))"></div>
+
+        <!-- Bubble Footer with Timestamp & Copy Action -->
+        <div class="bubble-footer">
+          <span class="message-timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
+          <button *ngIf="msg.role === 'assistant'" class="copy-btn" (click)="copyContent(getDisplayContent(msg), msg.id)">
+            {{ copiedMessageId === msg.id ? '✓ Copied' : 'Copy' }}
+          </button>
+        </div>
+
+        <!-- Follow-up Prompts -->
+        <div *ngIf="msg.suggestedFollowUps && msg.suggestedFollowUps.length > 0" class="follow-up-section">
+          <div class="follow-up-title">Recommended Follow-Ups:</div>
+          <div class="follow-up-pills">
+            <button *ngFor="let followUp of msg.suggestedFollowUps" 
+                    (click)="sendMessage(followUp)" 
+                    class="follow-up-btn">
+              {{ followUp }} →
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div *ngIf="isLoading" class="chat-message-row assistant-row">
+      <div class="message-avatar">
+        <span class="gemini-sparkle pulse-animation">✦</span>
+      </div>
+      <div class="message-bubble assistant-bubble loading-bubble">
+        <div class="typing-indicator">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span class="loading-text">Synthesizing live quotes, regulatory filings, and market telemetry...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Input Bar -->
+  <div class="chat-input-container">
+    <input 
+      type="text" 
+      class="chat-input" 
+      placeholder="Ask anything: 'Where do I start as a beginner?', 'What is P/E?', 'Show TCS technicals', 'Why is HDFCBANK falling?'..." 
+      [(ngModel)]="userInput" 
+      (keyup.enter)="sendMessage()"
+      [disabled]="isLoading"
+    />
+    <button class="send-btn" (click)="sendMessage()" [disabled]="!userInput.trim() || isLoading">
+      <span>Send</span>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="22" y1="2" x2="11" y2="13"></line>
+        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+      </svg>
+    </button>
+  </div>
+</div>
